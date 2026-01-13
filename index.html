@@ -164,23 +164,37 @@
         .btn-danger { color: var(--danger); border-color: var(--border); }
         .btn-danger:hover { background: rgba(248, 81, 73, 0.1); border-color: var(--danger); }
         
-        /* --- TAG SYSTEM (CHIPS) MEJORADO (SOLUCIÓN JITTER) --- */
+/* --- TAG SYSTEM (CHIPS) ESTABILIZADO --- */
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
         
         .tag-item { 
-            font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; 
+            font-size: 0.8rem; 
+            /* Padding inicial equilibrado */
+            padding: 6px 14px; 
+            border-radius: 20px; 
             background: rgba(255,255,255,0.04); 
             border: 1px solid rgba(255,255,255,0.15); 
             color: #e6edf3; 
             cursor: pointer; 
-            transition: all 0.2s ease; 
-            display: flex; align-items: center; gap: 6px; user-select: none;
-            position: relative; overflow: hidden;
+            /* Transición suave para el padding y colores */
+            transition: padding-right 0.2s cubic-bezier(0.2, 0, 0.2, 1), background 0.2s, border-color 0.2s; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            user-select: none;
+            position: relative; /* Clave para posicionar el botón */
+            overflow: hidden;
             font-weight: 400;
         }
         
-        .tag-item:hover { background: rgba(255,255,255,0.08); border-color: #8b949e; }
+        /* Efecto Hover: Solo estiramos el padding derecho, el texto NO se mueve */
+        .tag-item:hover { 
+            background: rgba(255,255,255,0.08); 
+            border-color: #8b949e;
+            padding-right: 34px; /* Espacio reservado para el botón */
+        }
         
+        /* Estados Activos */
         .tag-item.active { 
             font-weight: 700;
             background: rgba(212,244,255,0.04); 
@@ -189,27 +203,40 @@
             transform: scale(1.02);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        
         .tag-item.active.cat-values { background-color: var(--cat-val); box-shadow: 0 0 10px rgba(210, 168, 255, 0.3); }
         .tag-item.active.cat-aspirations { background-color: var(--cat-goal); box-shadow: 0 0 10px rgba(126, 231, 135, 0.3); }
         .tag-item.active.cat-interests { background-color: var(--cat-int); box-shadow: 0 0 10px rgba(121, 192, 255, 0.3); }
         .tag-item.active.cat-traits { background-color: var(--cat-trait); box-shadow: 0 0 10px rgba(240, 136, 62, 0.3); }
         .tag-item.active.cat-extras { background-color: var(--cat-extra); box-shadow: 0 0 10px rgba(139, 148, 158, 0.3); }
-
         .tag-item.local { border-style: dashed; opacity: 0.95; }
 
-        /* SOLUCIÓN AL MOVIMIENTO ERRÁTICO: Animar width en vez de display:none */
+        /* BOTÓN DE BORRAR: Posición absoluta para evitar saltos */
         .tag-del-btn {
-            width: 0; opacity: 0; overflow: hidden;
-            height: 16px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.2); color: inherit; font-size: 10px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 0;
+            position: absolute;
+            right: 6px; /* Fijado a la derecha */
+            top: 50%;
+            transform: translateY(-50%) scale(0.5); /* Centrado y pequeño */
+            width: 20px; 
+            height: 20px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background: rgba(0,0,0,0.2); 
+            color: inherit; 
+            font-size: 10px;
+            opacity: 0; /* Invisible por defecto */
+            transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+            pointer-events: none; /* Evita clicks accidentales cuando no se ve */
         }
-        .tag-del-btn:hover { background: rgba(0,0,0,0.5); color: #fff; }
         
+        .tag-del-btn:hover { background: #cf222e; color: white; }
+        
+        /* Al hacer hover en la etiqueta, aparece el botón */
         .tag-item:hover .tag-del-btn { 
-            width: 16px; opacity: 1; margin-left: 4px; /* Expansión suave */
+            opacity: 1; 
+            transform: translateY(-50%) scale(1); /* Escala normal */
+            pointer-events: auto;
         }
 
         .promote-btn {
@@ -217,9 +244,7 @@
             display: flex; align-items: center; justify-content: center; font-size: 10px;
             color: inherit; transition: 0.2s;
         }
-        .promote-btn:hover { background: #fff; color: #000; }
-
-        /* --- NOTAS FLOTANTES --- */
+        .promote-btn:hover { background: #fff; color: #000; }        /* --- NOTAS FLOTANTES --- */
         #canvas-notes-panel {
             position: absolute; top: 20px; right: 20px; bottom: 20px; width: 320px; 
             z-index: 40; display: none; flex-direction: column; gap: 10px; 
@@ -367,16 +392,16 @@ const App = {
             { id: 't16', label: 'Colaborador', category: 'traits' },
             { id: 't17', label: 'Puntual', category: 'traits' },
             // Extra
-            { id: 'e1', label: 'Perro', category: 'traits' },
-            { id: 'e2', label: 'Gato', category: 'traits' },
-            { id: 'e3', label: 'Dulce', category: 'traits' },
-            { id: 'e4', label: 'Salado', category: 'traits' },
-            { id: 'e5', label: 'Playa', category: 'traits' },
-            { id: 'e6', label: 'Montaña', category: 'traits' },
-            { id: 'e7', label: 'Madruga', category: 'traits' },
-            { id: 'e8', label: 'Trasnocha', category: 'traits' },
-            { id: 'e7', label: 'Introvertido', category: 'traits' },
-            { id: 'e8', label: 'Extrovertido', category: 'traits' },
+            { id: 'e1', label: 'Perro', category: 'extras' },
+            { id: 'e2', label: 'Gato', category: 'extras' },
+            { id: 'e3', label: 'Dulce', category: 'extras' },
+            { id: 'e4', label: 'Salado', category: 'extras' },
+            { id: 'e5', label: 'Playa', category: 'extras' },
+            { id: 'e6', label: 'Montaña', category: 'extras' },
+            { id: 'e7', label: 'Madruga', category: 'extras' },
+            { id: 'e8', label: 'Trasnocha', category: 'extras' },
+            { id: 'e7', label: 'Introvertido', category: 'extras' },
+            { id: 'e8', label: 'Extrovertido', category: 'extras' },
         ],
         catConfigs: [
             { key: 'values', label: '💜 Valores', weight: 3.0, color: '#d2a8ff', cssClass: 'cat-values' },
