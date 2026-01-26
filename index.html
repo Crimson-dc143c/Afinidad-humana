@@ -3,279 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinidad Humana V7.6 — Final</title>
+    <title>Afinidad Humana V9.0 — Cloud Sync</title>
+    
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- VARIABLES & THEME --- */
+        /* --- ESTILOS BASE --- */
         :root {
-            --bg: #090c10; 
-            --panel: #161b22; 
-            --border: #30363d;
-            --text-main: #c9d1d9; 
-            --text-muted: #8b949e;
-            
-            /* Colores de Estado */
-            --accent: #58a6ff; 
-            --accent-hover: #79c0ff;
-            --danger: #f85149; 
-            --success: #238636; 
-            --gold: #d29922;
-            
-            /* Colores Base Categorías */
-            --cat-val: #d2a8ff;   /* Valores */
-            --cat-goal: #7ee787;  /* Metas */
-            --cat-int: #79c0ff;   /* Gustos */
-            --cat-trait: #f0883e; /* Rasgos */
-            --cat-extra: #8b949e; /* Extras */
+            --bg: #090c10; --panel: #161b22; --border: #30363d;
+            --text-main: #c9d1d9; --text-muted: #8b949e;
+            --accent: #58a6ff; --danger: #f85149; --success: #238636; --gold: #d29922;
+            --ai-color: #a371f7;
+            --cat-val: #d2a8ff; --cat-goal: #7ee787; --cat-int: #79c0ff; --cat-trait: #f0883e; --cat-extra: #8b949e;
         }
 
-        /* --- GLOBAL RESET --- */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main); 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-        
-        button, input, textarea, select { font-family: inherit; }
-
-        /* --- SCROLLBARS --- */
-        * { scrollbar-width: thin; scrollbar-color: #58a6ff #0d1117; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        * { scrollbar-width: thin; scrollbar-color: #58a6ff #0d1117; box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #58a6ff; }
 
-        /* --- LAYOUT: SIDEBAR --- */
+        /* Sidebar Layout */
         #sidebar-container {
-            width: 420px;
-            background: var(--panel); 
-            border-right: 1px solid var(--border);
-            display: flex; 
-            flex-direction: row;
-            z-index: 20; 
-            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
-            height: 100vh;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            flex-shrink: 0;
+            width: 420px; background: var(--panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: row; z-index: 20; box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+            height: 100vh; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; flex-shrink: 0;
         }
-
         #sidebar-container.collapsed { width: 0; border: none; }
+        #sidebar-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0px; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); background: var(--panel); flex-shrink: 0; z-index: 10; }
+        #sidebar-ui { overflow-y: auto; overflow-x: hidden; height: 100%; padding: 20px; }
 
-        #sidebar-content {
-            flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0px;
-        }
-
-        .sidebar-header { 
-            padding: 20px; 
-            border-bottom: 1px solid var(--border); 
-            background: var(--panel); 
-            flex-shrink: 0; 
-            z-index: 10; 
-        }
-        
-        #sidebar-ui { 
-            overflow-y: auto; 
-            overflow-x: hidden; 
-            height: 100%; 
-            padding: 20px; 
-        }
-
-        /* TOGGLE BUTTON */
         #sidebar-toggle {
             position: absolute; top: 50%; right: -24px; width: 24px; height: 48px;
             background: var(--panel); border: 1px solid var(--border); border-left: none;
-            border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; color: var(--text-muted); z-index: 25; 
-            transition: all 0.3s ease;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.2);
-            user-select: none;
+            border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); z-index: 25; transition: 0.3s; box-shadow: 4px 0 10px rgba(0,0,0,0.2); user-select: none;
         }
         #sidebar-toggle:hover { color: var(--accent); background: #1f262e; }
         #sidebar-container.collapsed #sidebar-toggle { right: -24px; }
 
-        /* --- ANIMACIONES --- */
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes slideInLeft { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
-        .anim-fade { animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Componentes UI */
+        h2 { margin: 0; font-weight: 600; color: white; letter-spacing: -0.5px; }
+        h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        input, textarea, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 8px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        .btn { background: var(--panel); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap:5px;}
+        .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(88, 166, 255, 0.1); }
+        .btn-primary { background: var(--accent); color: #090c10; border: none; font-weight: 700; }
+        .btn-danger { color: var(--danger); border-color: var(--border); }
+        .btn-ai { background: rgba(163, 113, 247, 0.1); border-color: var(--ai-color); color: var(--ai-color); }
+        .btn-ai:hover { background: var(--ai-color); color: white; }
+        
+        /* Boton Login */
+        .btn-google { background: #fff; color: #333; font-weight: bold; border: none; }
+        .btn-google:hover { background: #eee; }
 
-        /* --- UI COMPONENTS: ACORDEONES --- */
-        details { 
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            margin-bottom: 10px; 
-            overflow: hidden; 
-            transition: all 0.2s ease; 
-        }
-        details[open] { background: rgba(255,255,255,0.05); border-color: var(--accent); }
-        summary { 
-            padding: 12px 15px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            font-size: 0.9rem; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            list-style: none; 
-            user-select: none; 
-        }
+        /* Listas y Tags */
+        .person-row { display: flex; align-items: center; padding: 8px; border-radius: 6px; margin-bottom: 4px; transition: background 0.2s; }
+        .person-row:hover { background: rgba(255,255,255,0.03); }
+        .person-check { margin-right: 10px; accent-color: var(--accent); cursor: pointer; width: 16px; height: 16px; }
+        .person-info { flex-grow: 1; cursor: pointer; display: flex; justify-content: space-between; }
+
+        details { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        summary { padding: 12px 15px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; list-style: none; }
         summary:after { content: '+'; font-size: 1.2rem; color: var(--text-muted); transition: 0.2s; }
         details[open] summary:after { content: '-'; color: var(--accent); transform: rotate(180deg); }
         .details-content { padding: 15px; border-top: 1px solid var(--border); }
-
-        /* Botón borrar categoría en el header */
-        .cat-delete-btn {
-            background: transparent; border: none; cursor: pointer; font-size: 0.9rem; opacity: 0.5;
-            transition: 0.2s; margin-right: auto; margin-left: 10px;
-        }
-        .cat-delete-btn:hover { opacity: 1; transform: scale(1.1); }
-
-        /* --- TYPOGRAPHY & FORMS --- */
-        h2 { margin: 0; font-weight: 600; color: white; letter-spacing: -0.5px; }
-        h3 { 
-            font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; 
-            letter-spacing: 1px; margin: 20px 0 10px 0; border-bottom: 1px solid var(--border); 
-            padding-bottom: 5px; 
-        }
         
-        input, textarea, select { 
-            background: #0d1117; border: 1px solid var(--border); color: white; 
-            padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; 
-            margin-bottom: 8px; outline: none; font-size: 0.9rem; 
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2); }
-        
-        .btn { 
-            background: var(--panel); border: 1px solid var(--border); color: var(--text-main); 
-            padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; 
-            transition: all 0.2s; font-size: 0.85rem; font-weight: 500; user-select: none;
-        }
-        .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(88, 166, 255, 0.1); }
-        .btn-primary { background: var(--accent); color: #090c10; border: none; font-weight: 700; }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-danger { color: var(--danger); border-color: var(--border); }
-        .btn-danger:hover { background: rgba(248, 81, 73, 0.1); border-color: var(--danger); }
-        
-/* --- TAG SYSTEM (CHIPS) ESTABILIZADO --- */
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
-        
-        .tag-item { 
-            font-size: 0.8rem; 
-            /* Padding inicial equilibrado */
-            padding: 6px 14px; 
-            border-radius: 20px; 
-            background: rgba(255,255,255,0.04); 
-            border: 1px solid rgba(255,255,255,0.15); 
-            color: #e6edf3; 
-            cursor: pointer; 
-            /* Transición suave para el padding y colores */
-            transition: padding-right 0.2s cubic-bezier(0.2, 0, 0.2, 1), background 0.2s, border-color 0.2s; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 6px; 
-            user-select: none;
-            position: relative; /* Clave para posicionar el botón */
-            overflow: hidden;
-            font-weight: 400;
-        }
-        
-        /* Efecto Hover: Solo estiramos el padding derecho, el texto NO se mueve */
-        .tag-item:hover { 
-            background: rgba(255,255,255,0.08); 
-            border-color: #8b949e;
-            padding-right: 34px; /* Espacio reservado para el botón */
-        }
-        
-        /* Estados Activos */
-        .tag-item.active { 
-            font-weight: 700;
-            background: rgba(212,244,255,0.04); 
-            border-color: transparent; 
-            color: #050505 !important; 
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .tag-item.active.cat-values { background-color: var(--cat-val); box-shadow: 0 0 10px rgba(210, 168, 255, 0.3); }
-        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); box-shadow: 0 0 10px rgba(126, 231, 135, 0.3); }
-        .tag-item.active.cat-interests { background-color: var(--cat-int); box-shadow: 0 0 10px rgba(121, 192, 255, 0.3); }
-        .tag-item.active.cat-traits { background-color: var(--cat-trait); box-shadow: 0 0 10px rgba(240, 136, 62, 0.3); }
-        .tag-item.active.cat-extras { background-color: var(--cat-extra); box-shadow: 0 0 10px rgba(139, 148, 158, 0.3); }
+        .tag-item { font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #e6edf3; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; position: relative; overflow: hidden; }
+        .tag-item:hover { background: rgba(255,255,255,0.08); padding-right: 34px; }
+        .tag-item.active { font-weight: 700; background: rgba(212,244,255,0.04); border-color: transparent; color: #050505 !important; transform: scale(1.02); }
+        .tag-item.active.cat-values { background-color: var(--cat-val); }
+        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); }
+        .tag-item.active.cat-interests { background-color: var(--cat-int); }
+        .tag-item.active.cat-traits { background-color: var(--cat-trait); }
+        .tag-item.active.cat-extras { background-color: var(--cat-extra); }
         .tag-item.local { border-style: dashed; opacity: 0.95; }
+        .tag-del-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%) scale(0.5); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); color: inherit; font-size: 10px; opacity: 0; transition: 0.2s; pointer-events: none; }
+        .tag-item:hover .tag-del-btn { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
+        .promote-btn { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: inherit; transition: 0.2s; }
+        .promote-btn:hover { background: #fff; color: #000; }
 
-        /* BOTÓN DE BORRAR: Posición absoluta para evitar saltos */
-        .tag-del-btn {
-            position: absolute;
-            right: 6px; /* Fijado a la derecha */
-            top: 50%;
-            transform: translateY(-50%) scale(0.5); /* Centrado y pequeño */
-            width: 20px; 
-            height: 20px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            background: rgba(0,0,0,0.2); 
-            color: inherit; 
-            font-size: 10px;
-            opacity: 0; /* Invisible por defecto */
-            transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
-            pointer-events: none; /* Evita clicks accidentales cuando no se ve */
-        }
-        
-        .tag-del-btn:hover { background: #cf222e; color: white; }
-        
-        /* Al hacer hover en la etiqueta, aparece el botón */
-        .tag-item:hover .tag-del-btn { 
-            opacity: 1; 
-            transform: translateY(-50%) scale(1); /* Escala normal */
-            pointer-events: auto;
-        }
-
-        .promote-btn {
-            width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center; font-size: 10px;
-            color: inherit; transition: 0.2s;
-        }
-        .promote-btn:hover { background: #fff; color: #000; }        /* --- NOTAS FLOTANTES --- */
-        #canvas-notes-panel {
-            position: absolute; top: 20px; right: 20px; bottom: 20px; width: 320px; 
-            z-index: 40; display: none; flex-direction: column; gap: 10px; 
-            overflow-y: auto; padding-right: 5px; pointer-events: none;
-        }
-        .note-card {
-            pointer-events: auto; padding: 12px 15px; border-radius: 8px; position: relative; 
-            font-size: 0.9rem; border-left: 5px solid; color: #090c10; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); 
-            transition: transform 0.2s; animation: slideInLeft 0.3s ease-out;
-            word-wrap: break-word;
-        }
-        .note-content p { margin: 0 0 6px 0; line-height: 1.4; }
-        .note-content p:last-child { margin-bottom: 0; }
-        .note-content ul { margin: 0 0 6px 0; padding-left: 20px; }
-        .note-content li { margin-bottom: 2px; }
-
+        /* Notas Editables */
+        #canvas-notes-panel { position: absolute; top: 20px; right: 20px; bottom: 20px; width: 320px; z-index: 40; display: none; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; pointer-events: none; }
+        .note-card { pointer-events: auto; padding: 12px 15px; border-radius: 8px; position: relative; font-size: 0.9rem; border-left: 5px solid; color: #090c10; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); word-wrap: break-word; transition: transform 0.2s; }
         .note-card:hover { transform: scale(1.02); }
         .note-date { font-size: 0.7rem; opacity: 0.7; display: block; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 4px; }
-        
+        .note-content[contenteditable="true"] { outline: 2px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.4); padding: 5px; border-radius: 4px; }
         .note-card.yellow { background: rgba(255, 249, 196, 0.95); border-color: #fbc02d; }
         .note-card.red { background: rgba(255, 205, 210, 0.95); border-color: #e53935; }
         .note-card.green { background: rgba(200, 230, 201, 0.95); border-color: #43a047; }
         .note-card.blue { background: rgba(187, 222, 251, 0.95); border-color: #1e88e5; }
-        
-        .note-actions { position: absolute; top: 8px; right: 8px; opacity: 0; transition: 0.2s; display: flex; gap: 3px; }
+        .note-actions { position: absolute; top: 8px; right: 8px; opacity: 0; transition: 0.2s; display: flex; gap: 5px; }
         .note-card:hover .note-actions { opacity: 1; }
-        .mini-btn { border: none; background: rgba(0,0,0,0.1); border-radius:4px; cursor: pointer; font-size: 0.9rem; padding: 4px; color:#333; }
+        .mini-btn { border: none; background: rgba(0,0,0,0.1); border-radius:4px; cursor: pointer; font-size: 0.8rem; padding: 4px 6px; color:#333; }
         .mini-btn:hover { background: rgba(0,0,0,0.2); }
 
-        /* --- COMPARISON PANEL (Micro View) --- */
+        /* Rich Editor & IA */
+        .editor-container { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: #0d1117; }
+        .editor-toolbar { display: flex; gap: 5px; padding: 5px; background: #161b22; border-bottom: 1px solid var(--border); }
+        .editor-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .editor-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        #rich-editor { min-height: 80px; padding: 10px; color: white; outline: none; font-size: 0.9rem; line-height: 1.5; }
+        
+        .ai-panel { background: linear-gradient(135deg, rgba(163, 113, 247, 0.05) 0%, rgba(22, 27, 34, 0) 100%); border: 1px solid rgba(163, 113, 247, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .ai-response { font-size: 0.85rem; color: #d0d7de; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 10px; display: none; white-space: pre-wrap; border-left: 3px solid var(--ai-color); }
+
+        /* Espejo */
         .comp-row { display: flex; margin-bottom: 8px; font-size: 0.85rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
         .comp-col { flex: 1; padding: 5px; }
         .comp-col.shared { color: var(--cat-goal); }
@@ -284,35 +126,25 @@
         .circle-green { background: var(--success); box-shadow: 0 0 5px var(--success); }
         .circle-red { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
 
-        /* --- CONTROLS BAR (Top) --- */
-        #top-mode-bar { 
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%); 
-            background: rgba(22, 27, 34, 0.9); padding: 8px 20px; border-radius: 30px; 
-            border: 1px solid var(--border); display: flex; gap: 15px; z-index: 50; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); backdrop-filter: blur(5px); 
-        }
-        .mode-btn { 
-            background: transparent; border: none; color: var(--text-muted); 
-            cursor: pointer; font-weight: 600; padding: 5px 10px; border-radius: 15px; 
-            transition: 0.2s; font-size: 0.9rem;
-        }
+        /* Canvas & Top Bar */
+        #top-mode-bar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(22, 27, 34, 0.9); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--border); display: flex; gap: 15px; z-index: 50; box-shadow: 0 5px 20px rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; }
+        .mode-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-weight: 600; padding: 5px 10px; border-radius: 15px; transition: 0.2s; font-size: 0.9rem; }
         .mode-btn.active { background: var(--accent); color: #090c10; box-shadow: 0 0 10px var(--accent); }
-        .mode-btn:hover:not(.active) { color: white; }
-
-        /* --- CANVAS --- */
-        #main-canvas { 
-            flex-grow: 1; position: relative; 
-            background: radial-gradient(circle at center, #1c2128 0%, #090c10 100%); 
-            overflow: hidden; 
-        }
+        #main-canvas { flex-grow: 1; position: relative; background: radial-gradient(circle at center, #1c2128 0%, #090c10 100%); overflow: hidden; }
         
-        /* --- FILTER SLIDER --- */
-        .range-container { padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
-        .range-label { font-size: 0.8rem; display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 5px;}
-        input[type=range] { width: 100%; cursor: pointer; padding: 0; accent-color: var(--accent); }
+        #settings-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; display:none; align-items:center; justify-content:center; }
+        .modal-box { background: var(--panel); padding: 25px; border-radius: 10px; border: 1px solid var(--border); width: 400px; max-width: 90%; }
+        
+        /* Auth Overlay */
+        #auth-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(9, 12, 16, 0.9); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
     </style>
 </head>
 <body>
+
+    <div id="auth-overlay">
+        <h1 style="color:white; margin-bottom:10px;">Afinidad Humana V9</h1>
+        <p style="color:var(--text-muted); margin-bottom:30px;">Cargando sistema...</p>
+    </div>
 
     <div id="sidebar-container">
         <div id="sidebar-content">
@@ -325,6 +157,13 @@
     <div id="top-mode-bar">
         <button class="mode-btn active" id="btn-radial" onclick="App.setMacroView('radial')">ʘ Universo</button>
         <button class="mode-btn" id="btn-mesh" onclick="App.setMacroView('mesh')">☊ Red Social</button>
+        <div style="width: 1px; height: 20px; background: var(--border);"></div>
+        <button class="mode-btn" onclick="App.openSettings()">⚙️ IA</button>
+        <button class="mode-btn" id="btn-login" onclick="App.login()" style="display:none; color: var(--accent);">G Login</button>
+        <div id="user-display" style="display:none; align-items:center; gap:10px;">
+             <img id="user-pic" src="" style="width:24px; height:24px; border-radius:50%; border:1px solid var(--border);">
+             <button class="mode-btn" onclick="App.logout()" style="font-size:0.8rem; color:var(--danger)">Salir</button>
+        </div>
     </div>
 
     <div id="main-canvas">
@@ -332,76 +171,44 @@
         <div id="canvas-notes-panel"></div>
     </div>
 
+    <div id="settings-modal">
+        <div class="modal-box">
+            <h2>⚙️ Configuración IA</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">Ingresa tu API Key de OpenAI para habilitar funciones inteligentes.</p>
+            <input type="password" id="api-key-input" placeholder="sk-..." style="margin-top:15px;">
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" onclick="App.saveSettings()">Guardar</button>
+                <button class="btn" onclick="document.getElementById('settings-modal').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 <script>
-/**
- * AFINIDAD HUMANA V7.6 - Final
- */
+// --- FIREBASE CONFIG ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
+    authDomain: "afinidad-humana.firebaseapp.com",
+    projectId: "afinidad-humana",
+    storageBucket: "afinidad-humana.firebasestorage.app",
+    messagingSenderId: "554727868325",
+    appId: "1:554727868325:web:5abf9aefbe3cddd2134a4c",
+    measurementId: "G-HY8CNBGCWK"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
 const App = {
-    // --- STATE & DATA ---
+    // --- STATE ---
     data: {
-        me: { 
-            id: 'me', name: 'YO', 
-            categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] },
-            notes: [] 
-        },
-        people: [], 
-        relationships: [],
+        me: { id: 'me', name: 'YO', categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] }, notes: [] },
+        people: [], apiKey: "", settings: { selectedForNetwork: [] },
         library: [
-            // Valores
-            { id: 'v1', label: 'Honestidad', category: 'values' }, 
-            { id: 'v2', label: 'Lealtad', category: 'values' },
-            { id: 'v3', label: 'Respeto', category: 'values' }, 
-            { id: 'v4', label: 'Compasión', category: 'values' },
-            { id: 'v5', label: 'Perseverancia', category: 'values' }, 
-            { id: 'v6', label: 'Independencia', category: 'values' },
-            { id: 'v7', label: 'Tolerancia', category: 'values' }, 
-            // Aspiraciones (Metas)
-            { id: 'm1', label: 'Emprender', category: 'aspirations' },
-            { id: 'm2', label: 'Salud física', category: 'aspirations' },
-            { id: 'm3', label: 'Salud mental', category: 'aspirations' },
-            { id: 'm4', label: 'Desarrollo personal', category: 'aspirations' },
-            { id: 'm5', label: 'Crecimiento profesional', category: 'aspirations' },
-            { id: 'm6', label: 'Familia', category: 'aspirations' },
-            { id: 'm7', label: 'Amor', category: 'aspirations' },
-            // Intereses
-            { id: 'i1', label: 'Música', category: 'interests' },
-            { id: 'i2', label: 'Gimnasio', category: 'interests' },
-            { id: 'i3', label: 'Baile', category: 'interests' },
-            { id: 'i4', label: 'Cine', category: 'interests' },
-            { id: 'i5', label: 'Lectura', category: 'interests' },
-            { id: 'i6', label: 'Escritura', category: 'interests' },
-            { id: 'i7', label: 'Arte', category: 'interests' },
-            { id: 'i8', label: 'Deporte', category: 'interests' },
-            { id: 'i9', label: 'Tecnología', category: 'interests' },
-            // Rasgos
-            { id: 't1', label: 'Analítico', category: 'traits' },
-            { id: 't2', label: 'Creativo', category: 'traits' },
-            { id: 't3', label: 'Reflexivo', category: 'traits' },
-            { id: 't4', label: 'Sensible', category: 'traits' },
-            { id: 't5', label: 'Competitivo', category: 'traits' },
-            { id: 't6', label: 'Soñador', category: 'traits' },
-            { id: 't7', label: 'Directo', category: 'traits' },
-            { id: 't8', label: 'Diplomático', category: 'traits' },
-            { id: 't9', label: 'Tranquilo', category: 'traits' },
-            { id: 't10', label: 'Reservado', category: 'traits' },
-            { id: 't11', label: 'Energético', category: 'traits' },
-            { id: 't12', label: 'Adaptable', category: 'traits' },
-            { id: 't13', label: 'Responsable', category: 'traits' },
-            { id: 't14', label: 'Desordenado', category: 'traits' },
-            { id: 't15', label: 'Perfeccionista', category: 'traits' },
-            { id: 't16', label: 'Colaborador', category: 'traits' },
-            { id: 't17', label: 'Puntual', category: 'traits' },
-            // Extra
-            { id: 'e1', label: 'Perro', category: 'extras' },
-            { id: 'e2', label: 'Gato', category: 'extras' },
-            { id: 'e3', label: 'Dulce', category: 'extras' },
-            { id: 'e4', label: 'Salado', category: 'extras' },
-            { id: 'e5', label: 'Playa', category: 'extras' },
-            { id: 'e6', label: 'Montaña', category: 'extras' },
-            { id: 'e7', label: 'Madruga', category: 'extras' },
-            { id: 'e8', label: 'Trasnocha', category: 'extras' },
-            { id: 'e7', label: 'Introvertido', category: 'extras' },
-            { id: 'e8', label: 'Extrovertido', category: 'extras' },
+            { label: 'Honestidad', category: 'values' }, { label: 'Lealtad', category: 'values' },
+            { label: 'Emprender', category: 'aspirations' }, { label: 'Música', category: 'interests' },
+            { label: 'Analítico', category: 'traits' }
         ],
         catConfigs: [
             { key: 'values', label: '💜 Valores', weight: 3.0, color: '#d2a8ff', cssClass: 'cat-values' },
@@ -411,267 +218,235 @@ const App = {
             { key: 'extras', label: '📓 Extras', weight: 1.0, color: '#8b949e', cssClass: 'cat-extras' }
         ]
     },
+    user: null, // Current Firebase User
+    dbUnsubscribe: null, // Listener cancel function
+    view: 'MACRO', macroMode: 'radial', activePersonId: null, network: null, nodes: new vis.DataSet([]), edges: new vis.DataSet([]), tempNoteColor: 'yellow', saveTimeout: null,
 
-    // --- VIEW STATE ---
-    view: 'MACRO',
-    macroMode: 'radial',
-    activePersonId: null,
-    isSidebarCollapsed: false,
-    filterVal: 0,
-    tempNoteColor: 'yellow',
-    editingNoteId: null, // Nuevo estado para edición
-
-    // --- VIS NETWORK ---
-    network: null,
-    nodes: new vis.DataSet([]),
-    edges: new vis.DataSet([]),
-
-    // --- INITIALIZATION ---
     init() {
-        this.loadData();
-        this.migrateData();
         this.initNetwork();
-        this.renderMacro();
-    },
-
-    initNetwork() {
-        const container = document.getElementById('mynetwork');
-        const options = {
-            nodes: { 
-                shape: 'box', 
-                font: { face: 'Inter', color: '#fff', size: 16 }, 
-                borderWidth: 1, 
-                color: { background: '#161b22', border: '#30363d' },
-                margin: 10, 
-                shadow: true
-            },
-            edges: { 
-                smooth: { type: 'continuous' } 
-            },
-            physics: { 
-                forceAtlas2Based: { gravitationalConstant: -80, springLength: 150 }, 
-                solver: 'forceAtlas2Based',
-                stabilization: { enabled: true, iterations: 100 }
-            },
-            interaction: { hover: true, tooltipDelay: 200 }
-        };
-
-        this.network = new vis.Network(container, { nodes: this.nodes, edges: this.edges }, options);
-
-        this.network.on("click", (params) => {
-            if (params.nodes.length > 0) this.handleNodeClick(params.nodes[0]);
+        
+        // Auth Listener
+        auth.onAuthStateChanged(user => {
+            this.user = user;
+            const overlay = document.getElementById('auth-overlay');
+            
+            if (user) {
+                // User Logged In
+                document.getElementById('btn-login').style.display = 'none';
+                document.getElementById('user-display').style.display = 'flex';
+                document.getElementById('user-pic').src = user.photoURL || '';
+                
+                overlay.innerHTML = `<h1 style="color:white;">Sincronizando...</h1>`;
+                this.loadFromFirebase();
+            } else {
+                // User Logged Out (Show local data or blank)
+                document.getElementById('btn-login').style.display = 'block';
+                document.getElementById('user-display').style.display = 'none';
+                
+                // Opción: Cargar local si no hay usuario, o forzar login
+                overlay.style.display = 'none'; 
+                this.loadLocalData(); // Fallback to local
+                this.renderMacro();
+            }
         });
     },
 
-    // --- DATA HANDLING ---
-    saveData() { 
-        localStorage.setItem('ah_v7_6', JSON.stringify(this.data)); 
+    // --- FIREBASE LOGIC ---
+    login() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert("Error login: " + err.message));
     },
-    
-    loadData() {
-        const saved = localStorage.getItem('ah_v7_6') || localStorage.getItem('ah_v7_5'); 
-        if (saved) {
-            try {
-                this.data = JSON.parse(saved);
-            } catch (e) { console.error("Error cargando datos", e); }
+
+    logout() {
+        if(this.dbUnsubscribe) this.dbUnsubscribe(); // Stop listening
+        auth.signOut();
+        location.reload();
+    },
+
+    loadFromFirebase() {
+        if (!this.user) return;
+        
+        const docRef = db.collection('users').doc(this.user.uid);
+        
+        // Realtime Listener
+        this.dbUnsubscribe = docRef.onSnapshot(doc => {
+            const overlay = document.getElementById('auth-overlay');
+            if (doc.exists) {
+                const cloudData = doc.data();
+                this.data = { ...this.data, ...cloudData }; // Merge structure
+                console.log("☁️ Datos sincronizados desde la nube");
+                overlay.style.display = 'none';
+                
+                // Restore View State
+                if (this.view === 'MACRO') this.renderMacro();
+                else if (this.view === 'MICRO') this.enterMicro(this.activePersonId);
+            } else {
+                // No cloud data yet -> Upload Local Data if exists
+                console.log("☁️ Nube vacía. Subiendo datos locales...");
+                this.loadLocalData(); // Get local
+                this.saveData(true); // Force push to cloud
+                overlay.style.display = 'none';
+                this.renderMacro();
+            }
+        }, err => {
+            console.error(err);
+            alert("Error de conexión con la base de datos");
+            document.getElementById('auth-overlay').style.display = 'none';
+        });
+    },
+
+    saveData(force = false) { 
+        // 1. Save Local (Backup)
+        localStorage.setItem('ah_v8_7', JSON.stringify(this.data)); 
+        
+        // 2. Save Cloud (Debounced)
+        if (this.user) {
+            if (this.saveTimeout) clearTimeout(this.saveTimeout);
+            
+            const doSave = () => {
+                db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)))
+                .then(() => console.log("☁️ Guardado en Firebase"))
+                .catch(e => console.error("Error guardando:", e));
+            };
+
+            if(force) doSave();
+            else this.saveTimeout = setTimeout(doSave, 1000); // Espera 1 seg de inactividad
         }
     },
 
-    migrateData() {
-        const ensureCats = (p) => {
-            if (!p.categories) p.categories = {};
-            this.data.catConfigs.forEach(conf => {
-                if (!p.categories[conf.key]) p.categories[conf.key] = [];
-            });
-            if (!p.notes) p.notes = [];
-        };
-        ensureCats(this.data.me);
-        this.data.people.forEach(ensureCats);
-        this.saveData();
+    loadLocalData() {
+        const saved = localStorage.getItem('ah_v8_7') || localStorage.getItem('ah_v8_6');
+        if (saved) {
+            try {
+                const local = JSON.parse(saved);
+                this.data = { ...this.data, ...local };
+                // Ensure defaults
+                if (!this.data.settings) this.data.settings = { selectedForNetwork: [] };
+            } catch(e) { console.error(e); }
+        }
     },
 
-    getPerson(id) { 
-        return id === 'me' ? this.data.me : this.data.people.find(p => p.id === id); 
+    // --- STANDARD APP LOGIC (Same as before) ---
+    initNetwork() {
+        this.network = new vis.Network(document.getElementById('mynetwork'), { nodes: this.nodes, edges: this.edges }, {
+            nodes: { shape: 'box', font: { face: 'Inter', color: '#fff', size: 16 }, borderWidth: 1, color: { background: '#161b22', border: '#30363d' }, margin: 10, shadow: true },
+            edges: { smooth: { type: 'continuous' } },
+            physics: { forceAtlas2Based: { gravitationalConstant: -80, springLength: 150 }, solver: 'forceAtlas2Based', stabilization: { iterations: 100 } },
+            interaction: { hover: true, tooltipDelay: 200 }
+        });
+        this.network.on("click", params => params.nodes.length && this.handleNodeClick(params.nodes[0]));
     },
 
-    // --- LOGIC ALGORITHMS ---
+    getPerson(id) { return id === 'me' ? this.data.me : this.data.people.find(p => p.id === id); },
+
     calculateAffinity(p1, p2) {
-        let totalWeight = 0;
-        let matchWeight = 0;
-
+        let totalWeight = 0; let matchWeight = 0;
         this.data.catConfigs.forEach(conf => {
-            const weight = conf.weight;
             const tags1 = p1.categories?.[conf.key] || [];
             const tags2 = p2.categories?.[conf.key] || [];
-            
             if(tags1.length > 0 || tags2.length > 0) {
-                totalWeight += (Math.max(tags1.length, tags2.length) * weight);
+                totalWeight += (Math.max(tags1.length, tags2.length) * conf.weight);
                 const matches = tags1.filter(tag => tags2.includes(tag)).length;
-                matchWeight += (matches * weight);
+                matchWeight += (matches * conf.weight);
             }
         });
-
-        if (totalWeight === 0) return 0;
-        return Math.min(100, (matchWeight / totalWeight) * 100);
+        return totalWeight === 0 ? 0 : Math.min(100, (matchWeight / totalWeight) * 100);
     },
 
     getAffinityColor(affinity, alpha = 1) {
-        if(affinity >= 70) return `rgba(35, 134, 54, ${alpha})`;
-        if(affinity >= 40) return `rgba(210, 153, 34, ${alpha})`;
-        return `rgba(218, 54, 51, ${alpha})`;
-    },
-
-    // --- UI NAVIGATION ---
-    toggleSidebar() {
-        this.isSidebarCollapsed = !this.isSidebarCollapsed;
-        const sb = document.getElementById('sidebar-container');
-        const btn = document.getElementById('sidebar-toggle');
-        if (this.isSidebarCollapsed) {
-            sb.classList.add('collapsed');
-            btn.innerHTML = '▶';
-        } else {
-            sb.classList.remove('collapsed');
-            btn.innerHTML = '◀';
-        }
+        if(affinity >= 60) return `rgba(35, 134, 54, ${alpha})`;
+        if(affinity >= 30) return `rgba(210, 153, 34, ${alpha})`;
+        return `rgba(248, 81, 73, ${alpha})`; 
     },
 
     setMacroView(mode) {
-        this.macroMode = mode;
-        this.view = 'MACRO';
+        this.macroMode = mode; this.view = 'MACRO';
         document.getElementById('btn-radial').className = `mode-btn ${mode==='radial'?'active':''}`;
         document.getElementById('btn-mesh').className = `mode-btn ${mode==='mesh'?'active':''}`;
         this.renderMacro();
     },
 
-    updateFilter(val) {
-        this.filterVal = parseInt(val);
-        document.getElementById('aff-val-display').innerText = `> ${this.filterVal}%`;
-        this.renderDirectoryList(); 
-    },
-
     renderMacro() {
-        this.view = 'MACRO';
-        this.activePersonId = null;
+        this.view = 'MACRO'; this.activePersonId = null;
         document.getElementById('top-mode-bar').style.display = 'flex';
         document.getElementById('canvas-notes-panel').style.display = 'none';
         
         document.getElementById('sidebar-header-content').innerHTML = `
-            <h2>Universo V7.6</h2>
-            <div style="font-size:0.8rem; color:#8b949e; margin-top:5px;">${this.data.people.length} conexiones activas</div>
+            <h2>Universo</h2>
+            <div style="font-size:0.8rem; color:#8b949e; margin-top:5px;">${this.data.people.length} personas</div>
+            ${!this.user ? '<div style="font-size:0.75rem; color:var(--gold); margin-top:5px;">⚠️ Modo Local (No sincronizado)</div>' : '<div style="font-size:0.75rem; color:var(--success); margin-top:5px;">☁️ Sincronizado</div>'}
         `;
 
         const ui = document.getElementById('sidebar-ui');
-        ui.className = 'anim-fade';
         ui.innerHTML = `
-            <div style="margin-bottom:20px; display:flex; gap:5px;">
-                <input id="add-name" placeholder="Nombre nueva persona..." style="margin:0">
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <input id="add-name" placeholder="Nueva persona..." style="margin:0">
                 <button class="btn btn-primary" onclick="App.createPerson()" style="width:40px;">+</button>
             </div>
-
-            <div style="margin-bottom:20px;">
-                <button class="btn" onclick="App.enterMicro('me')">👤 Editar "YO" (ADN Base)</button>
-            </div>
+            <button class="btn" onclick="App.enterMicro('me')" style="margin-bottom:20px;">👤 Editar Mi ADN</button>
             
-            <div class="range-container">
-                <div class="range-label">
-                    <span>Filtro de Afinidad</span>
-                    <strong id="aff-val-display">> ${this.filterVal}%</strong>
-                </div>
-                <input type="range" min="0" max="100" value="${this.filterVal}" oninput="App.updateFilter(this.value)">
+            <div style="display:flex; gap:5px; margin-bottom:10px;">
+                <button class="btn" style="font-size:0.7rem" onclick="App.selectAll(true)">Ver Todos</button>
+                <button class="btn" style="font-size:0.7rem" onclick="App.selectAll(false)">Ocultar</button>
             </div>
-
-            <h3>Directorio & Afinidad</h3>
-            <div id="directory-list"></div>
+            <div id="person-list"></div>
         `;
-        this.renderDirectoryList();
+        this.renderPersonList();
         this.drawMacroGraph();
     },
 
-    renderDirectoryList() {
-        const container = document.getElementById('directory-list');
-        const filteredPeople = this.data.people.filter(p => {
+    renderPersonList() {
+        const container = document.getElementById('person-list');
+        const sorted = [...this.data.people].sort((a,b) => this.calculateAffinity(this.data.me, b) - this.calculateAffinity(this.data.me, a));
+        
+        container.innerHTML = sorted.map(p => {
             const aff = Math.round(this.calculateAffinity(this.data.me, p));
-            return aff >= this.filterVal;
-        }).sort((a, b) => {
-            return this.calculateAffinity(this.data.me, b) - this.calculateAffinity(this.data.me, a);
-        });
-
-        if(filteredPeople.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">No hay resultados con > ${this.filterVal}% de afinidad.</div>`;
-            return;
-        }
-
-        container.innerHTML = filteredPeople.map(p => {
-            const affinity = Math.round(this.calculateAffinity(this.data.me, p));
-            const colorAff = this.getAffinityColor(affinity, 1);
-            
+            const isSelected = this.data.settings.selectedForNetwork.includes(p.id);
+            const color = this.getAffinityColor(aff, 1);
             return `
-            <div style="padding:12px; background:rgba(255,255,255,0.02); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; border-left: 3px solid ${colorAff}; transition: background 0.2s;" 
-                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.02)'"
-                    onclick="App.enterMicro('${p.id}')">
-                <span style="font-weight:500;">${p.name}</span>
-                <div style="text-align:right;">
-                    <span style="font-size:0.9rem; font-weight:bold; color:${colorAff}">${affinity}%</span>
+            <div class="person-row">
+                <input type="checkbox" class="person-check" ${isSelected ? 'checked' : ''} onchange="App.toggleSelection('${p.id}')">
+                <div class="person-info" onclick="App.enterMicro('${p.id}')">
+                    <span>${p.name}</span> <span style="font-weight:bold; color:${color}">${aff}%</span>
                 </div>
-            </div>
-        `}).join('');
+            </div>`;
+        }).join('');
+    },
+
+    toggleSelection(id) {
+        const list = this.data.settings.selectedForNetwork;
+        const idx = list.indexOf(id);
+        if(idx > -1) list.splice(idx, 1); else list.push(id);
+        this.saveData(); this.drawMacroGraph();
+    },
+
+    selectAll(enable) {
+        this.data.settings.selectedForNetwork = enable ? this.data.people.map(p => p.id) : [];
+        this.saveData(); this.renderPersonList(); this.drawMacroGraph();
     },
 
     drawMacroGraph() {
         this.nodes.clear(); this.edges.clear();
-        
-        this.nodes.add({ 
-            id: 'me', label: this.data.me.name, 
-            color: { background: '#fff', border: '#fff' }, 
-            font: { color: '#000', size: 18, bold: true }, 
-            shape: 'circle', size: 30 
+        this.nodes.add({ id: 'me', label: this.data.me.name, color: { background: '#fff', border: '#fff' }, font: { color: '#000', size: 18, bold: true }, shape: 'circle', size: 30 });
+        const visiblePeople = this.data.people.filter(p => this.data.settings.selectedForNetwork.includes(p.id));
+
+        visiblePeople.forEach(p => {
+            this.nodes.add({ id: p.id, label: p.name, color: { background: '#161b22', border: '#58a6ff' }, shape: 'box' });
+            if (this.macroMode === 'radial') {
+                const aff = Math.round(this.calculateAffinity(this.data.me, p));
+                const width = Math.max(1, aff / 15);
+                let edgeColor = this.getAffinityColor(aff, 0.6);
+                this.edges.add({ from: 'me', to: p.id, length: Math.max(80, 450 - (aff * 4)), width: width, color: { color: edgeColor }, label: aff + '%', font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } });
+            }
         });
 
-        this.data.people.forEach(p => {
-            this.nodes.add({ 
-                id: p.id, label: p.name, 
-                color: { background: '#161b22', border: '#58a6ff' }, 
-                shape: 'box' 
-            });
-        });
-
-        if (this.macroMode === 'radial') {
-            this.data.people.forEach(p => {
-                const affinity = Math.round(this.calculateAffinity(this.data.me, p));
-                const len = Math.max(80, 400 - (affinity * 3.5));
-                const width = Math.max(1, affinity / 10);
-                let edgeColor = this.getAffinityColor(affinity, 0.4);
-                
-                this.edges.add({ 
-                    from: 'me', to: p.id, 
-                    length: len, width: width, 
-                    color: { color: edgeColor }, 
-                    label: affinity + '%', 
-                    font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 }
-                });
-            });
-        } 
-        else if (this.macroMode === 'mesh') {
-            const allNodes = [this.data.me, ...this.data.people];
-            
+        if (this.macroMode === 'mesh') {
+            const allNodes = [this.data.me, ...visiblePeople];
             for (let i = 0; i < allNodes.length; i++) {
                 for (let j = i + 1; j < allNodes.length; j++) {
-                    const p1 = allNodes[i];
-                    const p2 = allNodes[j];
-                    const aff = Math.round(this.calculateAffinity(p1, p2));
-                    
-                    if (aff > 30) {
-                        const width = Math.max(0.5, aff / 20);
-                        const edgeColor = this.getAffinityColor(aff, 0.3);
-                        this.edges.add({ 
-                            from: p1.id, to: p2.id, 
-                            width: width, 
-                            color: { color: edgeColor },
-                            length: 300 - (aff * 2),
-                            label: aff + '%',
-                            font: { align: 'middle', size: 9, color: '#8b949e', background: '#090c10', strokeWidth: 0 }
-                        });
+                    const aff = Math.round(this.calculateAffinity(allNodes[i], allNodes[j]));
+                    if (aff > 0) { 
+                        this.edges.add({ from: allNodes[i].id, to: allNodes[j].id, width: Math.max(0.5, aff / 25), color: { color: this.getAffinityColor(aff, 0.4) }, length: 300 - (aff * 2), label: aff + '%', font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } });
                     }
                 }
             }
@@ -679,107 +454,38 @@ const App = {
         this.network.fit();
     },
 
-    // --- RENDERING: MICRO VIEW (Individual) ---
     enterMicro(id) {
-        this.view = 'MICRO';
-        this.activePersonId = id;
-        this.editingNoteId = null; // Resetear edición
+        this.view = 'MICRO'; this.activePersonId = id;
         document.getElementById('top-mode-bar').style.display = 'none';
-        
-        const notePanel = document.getElementById('canvas-notes-panel');
-        notePanel.style.display = 'flex';
-
+        document.getElementById('canvas-notes-panel').style.display = 'flex';
         const p = this.getPerson(id);
-        if (!p) return this.renderMacro();
-
+        if(!p) { this.renderMacro(); return; } // Safety
+        
         const isMe = (id === 'me');
         const ui = document.getElementById('sidebar-ui');
         ui.className = 'anim-fade';
 
-        // HEADER: AHORA SIEMPRE ES UN INPUT PARA EDITAR NOMBRES
-        let affHtml = '';
-        if(!isMe) {
-            const aff = Math.round(this.calculateAffinity(this.data.me, p));
-            let color = this.getAffinityColor(aff, 1);
-            affHtml = `<span style="font-size:1.5rem; font-weight:800; color:${color}; margin-left:10px;">${aff}%</span>`;
-        }
+        let headerHtml = isMe ? `<input type="text" value="${p.name}" onchange="App.updateName(this.value)" style="font-size:1.4rem; font-weight:bold; margin:0; background:transparent; border:1px dashed transparent; color:white;">` 
+            : `<div style="display:flex; justify-content:space-between; align-items:center;"><h2 style="font-size:1.5rem">${p.name}</h2><span style="font-size:1.2rem; font-weight:bold; color:${this.getAffinityColor(Math.round(this.calculateAffinity(this.data.me, p)), 1)}">${Math.round(this.calculateAffinity(this.data.me, p))}%</span></div>`;
 
-        const nameInputHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <input type="text" value="${p.name}" onchange="App.updateName(this.value)" 
-                    style="font-size:1.4rem; font-weight:bold; margin:0; background:transparent; border:1px dashed transparent; color:white; width:auto; flex-grow:1;">
-                ${affHtml}
-            </div>
-            <div style="font-size:0.75rem; color:#8b949e; margin-bottom:10px;">Clic en el nombre para editar</div>
-        `;
+        document.getElementById('sidebar-header-content').innerHTML = `<button class="btn" style="width:auto; margin-bottom:10px;" onclick="App.renderMacro()">← Volver</button>${headerHtml}`;
 
-        document.getElementById('sidebar-header-content').innerHTML = `
-            <button class="btn" onclick="App.renderMacro()" style="width:auto; padding:4px 10px; font-size:0.75rem; margin-bottom:10px;">← Volver al Universo</button>
-            ${nameInputHtml}
-        `;
+        // AI & Content
+        const aiSection = !isMe ? `<div class="ai-panel"><div style="display:flex; align-items:center; gap:5px; margin-bottom:10px; color:var(--ai-color); font-weight:bold; font-size:0.8rem;">✨ IA ASSISTANT</div><div style="display:flex; gap:5px; flex-wrap:wrap;"><button class="btn btn-ai" style="width:auto" onclick="App.aiSuggestTags()">🏷️ Sugerir</button><button class="btn btn-ai" style="width:auto" onclick="App.aiProfile()">📜 Perfil</button><button class="btn btn-ai" style="width:auto" onclick="App.aiInterview()">🕵️ Pregunta</button></div><div id="ai-output" class="ai-response"></div></div>` : '';
 
-        // Generar Acordeones con botón de ELIMINAR CATEGORÍA
-        let accordionsHtml = this.data.catConfigs.map(conf => `
+        const accordionsHtml = this.data.catConfigs.map(conf => `
             <details ${isMe ? 'open' : ''}>
-                <summary>
-                    <span>${conf.label} <button class="cat-delete-btn" onclick="event.preventDefault(); App.deleteCategory('${conf.key}')" title="Borrar categoría">🗑️</button></span>
-                </summary>
+                <summary><span>${conf.label} <button class="cat-delete-btn" onclick="event.preventDefault(); App.deleteCategory('${conf.key}')">🗑️</button></span></summary>
                 <div class="details-content">
                     <div id="tag-container-${conf.key}" class="tag-container"></div>
-                    <div style="margin-top:10px; display:flex; gap:5px;">
-                        <input id="new-tag-${conf.key}" placeholder="Añadir..." style="font-size:0.8rem; padding:6px; margin:0;" onkeypress="if(event.key==='Enter') App.addTag('${conf.key}')">
-                        <button class="btn btn-primary" style="width:auto; padding:0 10px;" onclick="App.addTag('${conf.key}')">+</button>
-                    </div>
+                    <div style="margin-top:10px; display:flex; gap:5px;"><input id="new-tag-${conf.key}" placeholder="Añadir..." style="font-size:0.8rem; padding:6px; margin:0;" onkeypress="if(event.key==='Enter') App.addTag('${conf.key}')"><button class="btn btn-primary" style="width:auto; padding:0 10px;" onclick="App.addTag('${conf.key}')">+</button></div>
                 </div>
-            </details>
-        `).join('');
+            </details>`).join('');
 
-        let mirrorHtml = '';
-        if(!isMe) {
-            mirrorHtml = `
-                <details open>
-                    <summary>🔍 Espejo de Compatibilidad</summary>
-                    <div class="details-content">
-                        <div class="comp-row"><div class="comp-col" style="font-weight:bold; color:#7ee787">En común (🟢)</div><div class="comp-col" style="font-weight:bold; color:#f85149">Diferencias (🔴)</div></div>
-                        <div id="mirror-content"></div>
-                    </div>
-                </details>
-            `;
-        }
+        const mirrorHtml = !isMe ? `<details open><summary>🔍 Espejo</summary><div class="details-content" id="mirror-content"></div></details>` : '';
 
-        const createCatHtml = `
-            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-                <h3 style="margin-top:0">📂 Nueva Categoría</h3>
-                <div style="display:flex; gap:5px;">
-                    <input id="new-cat-name" placeholder="Nombre (ej. Política)..." style="margin:0">
-                    <button class="btn btn-primary" style="width:40px;" onclick="App.createCategory()">+</button>
-                </div>
-            </div>
-        `;
+        ui.innerHTML = `${aiSection}${mirrorHtml}${accordionsHtml}<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;"><div style="display:flex; gap:5px;"><input id="new-cat-name" placeholder="Nueva Categoría..." style="margin:0"><button class="btn btn-primary" style="width:40px;" onclick="App.createCategory()">+</button></div></div><h3>Editor de Notas</h3><div class="editor-container"><div class="editor-toolbar"><button class="editor-btn" onclick="document.execCommand('bold',false,null)"><b>B</b></button><button class="editor-btn" onclick="document.execCommand('italic',false,null)"><i>I</i></button><button class="editor-btn" onclick="document.execCommand('insertUnorderedList',false,null)">• List</button></div><div id="rich-editor" contenteditable="true" placeholder="Escribe aquí..."></div></div><div style="display:flex; gap:5px; margin-bottom:20px;"><button class="btn" style="width:30px; background:#fff9c4;" onclick="App.saveNote('yellow')"></button><button class="btn" style="width:30px; background:#ffcdd2;" onclick="App.saveNote('red')"></button><button class="btn" style="width:30px; background:#c8e6c9;" onclick="App.saveNote('green')"></button><button class="btn" style="width:30px; background:#bbdefb;" onclick="App.saveNote('blue')"></button><button class="btn btn-primary" style="flex-grow:1" onclick="App.saveNote('yellow')">Fijar Nota</button></div>${!isMe ? `<button class="btn btn-danger" onclick="App.deletePerson()">Eliminar Persona</button>` : ''}`;
 
-        ui.innerHTML = `
-            ${mirrorHtml}
-            ${accordionsHtml}
-            ${createCatHtml}
-            
-            <h3>📝 Notas</h3>
-            <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; margin-bottom:15px;">
-                <textarea id="note-text" placeholder="Escribe aquí... (Enter para párrafos, - para listas)" rows="3"></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                    <div style="display:flex; gap:5px;">
-                        <div class="color-opt" style="width:20px; height:20px; background:#fff9c4; border-radius:50%; cursor:pointer; border:2px solid transparent;" onclick="App.setNoteColor('yellow', this)"></div>
-                        <div class="color-opt" style="width:20px; height:20px; background:#ffcdd2; border-radius:50%; cursor:pointer; border:2px solid transparent;" onclick="App.setNoteColor('red', this)"></div>
-                        <div class="color-opt" style="width:20px; height:20px; background:#c8e6c9; border-radius:50%; cursor:pointer; border:2px solid transparent;" onclick="App.setNoteColor('green', this)"></div>
-                        <div class="color-opt" style="width:20px; height:20px; background:#bbdefb; border-radius:50%; cursor:pointer; border:2px solid transparent;" onclick="App.setNoteColor('blue', this)"></div>
-                    </div>
-                    <button id="btn-save-note" class="btn btn-primary" style="width:auto;" onclick="App.saveNote()">Fijar Nota</button>
-                </div>
-            </div>
-
-            ${!isMe ? `<div style="margin-top:30px;"><button class="btn btn-danger" onclick="App.deletePerson()">Eliminar Persona</button></div>` : ''}
-        `;
-
-        this.tempNoteColor = 'yellow';
         this.data.catConfigs.forEach(conf => this.renderTags(conf.key, conf.cssClass));
         this.renderNotes();
         if(!isMe) this.renderMirror();
@@ -792,330 +498,200 @@ const App = {
         const p = this.getPerson(this.activePersonId);
         const myTags = p.categories[catKey] || [];
         const libraryOptions = this.data.library.filter(l => l.category === catKey);
-        
-        let uniqueLabels = [...new Set([...myTags, ...libraryOptions.map(l=>l.label)])].sort();
+        const uniqueLabels = [...new Set([...myTags, ...libraryOptions.map(l=>l.label)])].sort();
 
         container.innerHTML = uniqueLabels.map(label => {
             const active = myTags.includes(label);
             const isGlobal = this.data.library.some(l => l.label === label && l.category === catKey);
-            
             let classes = `tag-item ${cssClass}`;
             if (active) classes += ' active';
-            if (!isGlobal) classes += ' local'; 
-
-            let promoteHtml = '';
-            if (!isGlobal && active) {
-                promoteHtml = `<span class="promote-btn" onclick="event.stopPropagation(); App.promoteTag('${catKey}', '${label}')" title="Guardar en biblioteca global">↑</span>`;
-            }
-            const deleteHtml = `<div class="tag-del-btn" onclick="event.stopPropagation(); App.deleteConcept('${catKey}', '${label}')" title="Eliminar concepto permanentemente">🗑️</div>`;
-
-            return `<div class="${classes}" onclick="App.toggleTag('${catKey}', '${label}')">
-                ${label} ${promoteHtml} ${deleteHtml}
-            </div>`;
+            if (!isGlobal) classes += ' local';
+            let promoteHtml = (!isGlobal && active) ? `<span class="promote-btn" onclick="event.stopPropagation(); App.promoteTag('${catKey}', '${label}')">↑</span>` : '';
+            return `<div class="${classes}" onclick="App.toggleTag('${catKey}', '${label}')">${label} ${promoteHtml} <div class="tag-del-btn" onclick="event.stopPropagation(); App.deleteConcept('${catKey}', '${label}')">🗑️</div></div>`;
         }).join('');
     },
 
     renderMirror() {
         const container = document.getElementById('mirror-content');
-        const me = this.data.me;
-        const p = this.getPerson(this.activePersonId);
+        const me = this.data.me; const p = this.getPerson(this.activePersonId);
         let html = '';
-
         this.data.catConfigs.forEach(conf => {
-            const cat = conf.key;
-            const myTags = me.categories[cat] || [];
-            const theirTags = p.categories[cat] || [];
-            
+            const myTags = me.categories[conf.key] || [];
+            const theirTags = p.categories[conf.key] || [];
             const shared = myTags.filter(t => theirTags.includes(t));
             const diffThem = theirTags.filter(t => !myTags.includes(t));
-
             if(shared.length > 0 || diffThem.length > 0) {
-                html += `<div style="font-size:0.7rem; text-transform:uppercase; color:#666; margin-top:8px; margin-bottom:4px; font-weight:bold;">${conf.label}</div>`;
-                shared.forEach(t => {
-                    html += `<div class="comp-row"><div class="comp-col shared"><span class="circle-dot circle-green"></span>${t}</div><div class="comp-col"></div></div>`;
-                });
-                diffThem.forEach(t => {
-                    html += `<div class="comp-row"><div class="comp-col"></div><div class="comp-col diff"><span class="circle-dot circle-red"></span>${t}</div></div>`;
-                });
+                html += `<div style="font-size:0.7rem; text-transform:uppercase; color:#666; margin-top:8px;">${conf.label}</div>`;
+                shared.forEach(t => html += `<div class="comp-row"><div class="comp-col shared"><span class="circle-dot circle-green"></span>${t}</div><div class="comp-col"></div></div>`);
+                diffThem.forEach(t => html += `<div class="comp-row"><div class="comp-col"></div><div class="comp-col diff"><span class="circle-dot circle-red"></span>${t}</div></div>`);
             }
         });
-        container.innerHTML = html || '<div style="font-style:italic; color:#555; padding:10px;">No hay datos suficientes para comparar.</div>';
+        container.innerHTML = html || '<div style="font-style:italic; color:#555;">No hay datos relevantes.</div>';
     },
 
-    formatNoteContent(text) {
-        if (!text) return '';
-        const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const lines = safeText.split('\n');
-        let html = '';
-        let inList = false;
-
-        lines.forEach(line => {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('-')) {
-                if (!inList) { html += '<ul>'; inList = true; }
-                html += `<li>${trimmed.substring(1).trim()}</li>`;
-            } else {
-                if (inList) { html += '</ul>'; inList = false; }
-                if (trimmed.length > 0) html += `<p>${line}</p>`;
-            }
-        });
-        if (inList) html += '</ul>';
-        return html;
+    saveNote(color) {
+        const content = document.getElementById('rich-editor').innerHTML;
+        if(!content || content === '<br>') return;
+        const p = this.getPerson(this.activePersonId);
+        p.notes.push({ id: Date.now(), html: content, color, date: new Date().toLocaleDateString() });
+        this.saveData(); this.renderNotes();
+        document.getElementById('rich-editor').innerHTML = '';
     },
 
     renderNotes() {
         const panel = document.getElementById('canvas-notes-panel');
         const p = this.getPerson(this.activePersonId);
-        const notes = (p.notes || []).sort((a,b) => new Date(b.date) - new Date(a.date));
-        
+        const notes = (p.notes || []).sort((a,b) => b.id - a.id);
         if (notes.length === 0) { panel.innerHTML = ''; return; }
-
-        panel.innerHTML = notes.map(n => `
-            <div class="note-card ${n.color}">
-                <span class="note-date">${n.date}</span>
-                <div class="note-content">
-                    ${this.formatNoteContent(n.text)}
-                </div>
-                <div class="note-actions">
-                    <button class="mini-btn" title="Editar" onclick="App.editNote(${n.id})">✏️</button>
-                    <button class="mini-btn" title="Eliminar" onclick="App.deleteNote(${n.id})">✕</button>
-                </div>
-            </div>
-        `).join('');
+        panel.innerHTML = notes.map(n => `<div class="note-card ${n.color}"><span class="note-date">${n.date}</span><div class="note-content" contenteditable="true" onblur="App.updateNoteContent(${n.id}, this.innerHTML)">${n.html || n.text}</div><div class="note-actions"><button class="mini-btn" title="Eliminar nota" onclick="App.deleteNote(${n.id})">✕</button></div></div>`).join('');
     },
 
-    setNoteColor(color, el) {
-        this.tempNoteColor = color;
-        el.parentElement.querySelectorAll('.color-opt').forEach(d => d.style.border = '2px solid transparent');
-        el.style.border = '2px solid #58a6ff';
-    },
-
-    // --- LOGICA DE NOTAS MEJORADA (CREAR Y EDITAR) ---
-    saveNote() {
-        const txt = document.getElementById('note-text').value.trim();
-        if(!txt) return;
-        const p = this.getPerson(this.activePersonId);
-
-        if (this.editingNoteId) {
-            // Actualizar nota existente
-            const noteIndex = p.notes.findIndex(n => n.id === this.editingNoteId);
-            if (noteIndex >= 0) {
-                p.notes[noteIndex].text = txt;
-                p.notes[noteIndex].color = this.tempNoteColor;
-                // Opcional: actualizar fecha o mantener la original
-            }
-            this.editingNoteId = null;
-            document.getElementById('btn-save-note').innerText = 'Fijar Nota';
-        } else {
-            // Crear nueva
-            p.notes.push({ 
-                id: Date.now(), 
-                text: txt, 
-                color: this.tempNoteColor, 
-                date: new Date().toISOString().split('T')[0] 
-            });
-        }
-
-        document.getElementById('note-text').value = '';
-        this.saveData();
-        this.renderNotes();
-    },
-
-    editNote(id) {
+    updateNoteContent(id, newHtml) {
         const p = this.getPerson(this.activePersonId);
         const note = p.notes.find(n => n.id === id);
-        if(!note) return;
-
-        this.editingNoteId = id;
-        document.getElementById('note-text').value = note.text;
-        document.getElementById('btn-save-note').innerText = 'Actualizar Nota';
-        // Simular clic en el color de la nota para seleccionarlo
-        this.tempNoteColor = note.color;
+        if(note) { note.html = newHtml; this.saveData(); }
     },
 
     deleteNote(id) {
         if(!confirm('¿Borrar nota?')) return;
         const p = this.getPerson(this.activePersonId);
-        p.notes = p.notes.filter(n => n.id !== id);
-        if(this.editingNoteId === id) {
-            this.editingNoteId = null;
-            document.getElementById('note-text').value = '';
-            document.getElementById('btn-save-note').innerText = 'Fijar Nota';
-        }
-        this.saveData();
-        this.renderNotes();
+        p.notes = p.notes.filter(x => x.id !== id);
+        this.saveData(); this.renderNotes();
     },
 
-    // --- ACTIONS: TAGS & CATEGORIES ---
     toggleTag(catKey, label) {
         const p = this.getPerson(this.activePersonId);
         const idx = p.categories[catKey].indexOf(label);
-        
-        if (idx >= 0) {
-            p.categories[catKey].splice(idx, 1);
-        } else {
-            p.categories[catKey].push(label);
-        }
-        
-        if (this.activePersonId === 'me') {
-             if (!this.data.library.find(l => l.label === label && l.category === catKey)) {
-                this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
-            }
+        if (idx >= 0) p.categories[catKey].splice(idx, 1); else p.categories[catKey].push(label);
+        if (this.activePersonId === 'me' && !this.data.library.find(l => l.label === label && l.category === catKey)) {
+            this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
         }
         this.saveData();
-        
-        const conf = this.data.catConfigs.find(c=>c.key===catKey);
-        this.renderTags(catKey, conf.cssClass); 
-        if(this.activePersonId !== 'me') this.renderMirror();
-        this.drawMicroGraph();
-    },
-
-    deleteConcept(catKey, label) {
-        if(!confirm(`¿Estás seguro de eliminar "${label}" permanentemente?`)) return;
-        this.data.library = this.data.library.filter(l => !(l.label === label && l.category === catKey));
-        const cleanPerson = (p) => {
-            if(p.categories[catKey]) p.categories[catKey] = p.categories[catKey].filter(t => t !== label);
-        };
-        cleanPerson(this.data.me);
-        this.data.people.forEach(cleanPerson);
-        this.saveData();
-        const conf = this.data.catConfigs.find(c=>c.key===catKey);
-        this.renderTags(catKey, conf.cssClass);
+        this.renderTags(catKey, this.data.catConfigs.find(c=>c.key===catKey).cssClass);
         if(this.activePersonId !== 'me') this.renderMirror();
         this.drawMicroGraph();
     },
 
     addTag(catKey) {
-        const input = document.getElementById(`new-tag-${catKey}`);
-        const val = input.value.trim();
-        if(val) { this.toggleTag(catKey, val); input.value = ''; }
+        const val = document.getElementById(`new-tag-${catKey}`).value.trim();
+        if(val) { this.toggleTag(catKey, val); document.getElementById(`new-tag-${catKey}`).value=''; }
     },
 
     promoteTag(catKey, label) {
         if (!this.data.library.find(l => l.label === label && l.category === catKey)) {
             this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
-            this.saveData();
-            this.enterMicro(this.activePersonId);
+            this.saveData(); this.enterMicro(this.activePersonId);
         }
+    },
+
+    deleteConcept(catKey, label) {
+        if(!confirm(`¿Eliminar "${label}" permanentemente?`)) return;
+        this.data.library = this.data.library.filter(l => !(l.label === label && l.category === catKey));
+        const cleanPerson = (p) => { if(p.categories[catKey]) p.categories[catKey] = p.categories[catKey].filter(t => t !== label); };
+        cleanPerson(this.data.me); this.data.people.forEach(cleanPerson);
+        this.saveData(); this.enterMicro(this.activePersonId);
     },
 
     createCategory() {
         const name = document.getElementById('new-cat-name').value.trim();
         if(!name) return;
-        
         const key = 'cat_' + Date.now();
-        const cssClass = 'cat-extras'; 
-        
-        this.data.catConfigs.push({ 
-            key: key, 
-            label: '📂 ' + name, 
-            weight: 1.0, 
-            color: '#8b949e', 
-            cssClass: cssClass 
-        });
-        
+        this.data.catConfigs.push({ key: key, label: '📂 ' + name, weight: 1.0, color: '#8b949e', cssClass: 'cat-extras' });
         const initCat = (p) => { if(!p.categories[key]) p.categories[key] = []; };
-        initCat(this.data.me);
-        this.data.people.forEach(initCat);
-        
-        this.saveData();
-        this.enterMicro(this.activePersonId);
+        initCat(this.data.me); this.data.people.forEach(initCat);
+        this.saveData(); this.enterMicro(this.activePersonId);
     },
 
-    // NUEVO: ELIMINAR CATEGORÍA
-    deleteCategory(catKey) {
-        if(!confirm('¿Eliminar esta categoría y todos los datos asociados? Esta acción no se puede deshacer.')) return;
-
-        // 1. Eliminar de configs
-        this.data.catConfigs = this.data.catConfigs.filter(c => c.key !== catKey);
-        
-        // 2. Limpiar datos en personas
-        const cleanPersonCat = (p) => {
-            if(p.categories[catKey]) delete p.categories[catKey];
-        };
-        cleanPersonCat(this.data.me);
-        this.data.people.forEach(cleanPersonCat);
-
-        // 3. Limpiar librería
-        this.data.library = this.data.library.filter(l => l.category !== catKey);
-
-        this.saveData();
-        this.enterMicro(this.activePersonId); // Refrescar vista
+    deleteCategory(key) {
+        if(!confirm('¿Borrar categoría?')) return;
+        this.data.catConfigs = this.data.catConfigs.filter(c => c.key !== key);
+        this.saveData(); this.enterMicro(this.activePersonId);
     },
 
-    // --- ACTIONS: PERSON ---
     createPerson() {
-        const nameInput = document.getElementById('add-name');
-        const name = nameInput.value.trim();
+        const name = document.getElementById('add-name').value.trim();
         if(!name) return alert('Escribe un nombre');
-        
         const newPerson = { id: 'p_' + Date.now(), name: name, categories: {}, notes: [] };
         this.data.catConfigs.forEach(c => newPerson.categories[c.key] = []);
-        
         this.data.people.push(newPerson);
-        nameInput.value = '';
+        this.data.settings.selectedForNetwork.push(newPerson.id);
+        document.getElementById('add-name').value = '';
         this.saveData();
         this.renderMacro();
     },
-    
+
     deletePerson() {
-        if(!confirm('¿Eliminar a esta persona y sus datos?')) return;
+        if(!confirm('¿Eliminar persona?')) return;
         this.data.people = this.data.people.filter(p => p.id !== this.activePersonId);
-        this.saveData();
-        this.renderMacro();
+        this.saveData(); this.renderMacro();
     },
 
-    updateName(newName) {
-        // Ahora permite editar a cualquiera
-        const p = this.getPerson(this.activePersonId);
-        if(p) {
-            p.name = newName;
-            this.saveData();
-            this.drawMicroGraph(); // Actualizar nodo central
-        }
-    },
-
+    updateName(val) { if(val) { this.getPerson(this.activePersonId).name = val; this.saveData(); } },
+    toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); },
+    handleNodeClick(id) { if (id === 'me' || this.data.people.find(p => p.id === id)) this.enterMicro(id); },
+    
     drawMicroGraph() {
         const p = this.getPerson(this.activePersonId);
         this.nodes.clear(); this.edges.clear();
-        
-        this.nodes.add({ 
-            id: 'center', label: p.name, 
-            shape: 'box', 
-            color: {background:'#fff', border:'#fff'}, 
-            font:{size:20, color:'#000'}, 
-            fixed:true 
-        });
-
+        this.nodes.add({ id: 'center', label: p.name, shape: 'box', color: {background:'#fff', border:'#fff'}, font:{size:20, color:'#000'}, fixed:true });
         let i = 0;
         this.data.catConfigs.forEach(conf => {
-            const catKey = conf.key;
-            const color = conf.color;
-            if(p.categories[catKey]) {
-                p.categories[catKey].forEach(label => {
+            if(p.categories[conf.key]) {
+                p.categories[conf.key].forEach(label => {
                     i++;
-                    this.nodes.add({ 
-                        id: 'n_'+i, label: label, 
-                        shape: 'ellipse', 
-                        color: { background: '#0d1117', border: color }, 
-                        font: { color: color } 
-                    });
+                    this.nodes.add({ id: 'n_'+i, label: label, shape: 'ellipse', color: { background: '#0d1117', border: conf.color }, font: { color: conf.color } });
                     this.edges.add({ from: 'center', to: 'n_'+i, color: '#333' });
                 });
             }
         });
         this.network.fit();
     },
-    
-    handleNodeClick(id) {
-        if (id === 'me' || this.data.people.find(p => p.id === id)) {
-            this.enterMicro(id);
-        }
+
+    // --- IA ---
+    openSettings() { document.getElementById('settings-modal').style.display = 'flex'; },
+    saveSettings() {
+        this.data.apiKey = document.getElementById('api-key-input').value;
+        this.saveData(); document.getElementById('settings-modal').style.display = 'none';
+        if(this.view === 'MICRO') this.enterMicro(this.activePersonId);
+    },
+    async callAI(sys, user) {
+        if(!this.data.apiKey) return alert("Configura tu API Key primero en ⚙️");
+        const out = document.getElementById('ai-output');
+        out.style.display = 'block'; out.innerText = "Pensando..."; out.classList.add('loading-dots');
+        try {
+            const req = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${this.data.apiKey}`},
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{role:"system",content:sys},{role:"user",content:user}] })
+            });
+            const res = await req.json();
+            out.classList.remove('loading-dots');
+            if(res.error) return out.innerText = "Error: " + res.error.message;
+            return res.choices[0].message.content;
+        } catch(e) { out.innerText = "Error conexión"; }
+    },
+    async aiSuggestTags() {
+        const p = this.getPerson(this.activePersonId);
+        const res = await this.callAI("Eres experto en psicología. Da 5 etiquetas cortas (valores/rasgos) separadas por comas.", `Perfil: ${JSON.stringify(p.categories)}`);
+        if(res) document.getElementById('ai-output').innerText = "Sugerencias: " + res;
+    },
+    async aiProfile() {
+        const p = this.getPerson(this.activePersonId);
+        const res = await this.callAI("Crea un perfil psicológico breve (max 50 palabras) en 2da persona.", `Datos: ${JSON.stringify(p.categories)}`);
+        if(res) document.getElementById('ai-output').innerText = res;
+    },
+    async aiInterview() {
+        const p = this.getPerson(this.activePersonId);
+        const res = await this.callAI("Genera una pregunta profunda para conectar con esta persona.", `Intereses: ${JSON.stringify(p.categories)}`);
+        if(res) document.getElementById('ai-output').innerHTML = `<em>"${res}"</em> <button class="btn btn-primary" onclick="App.saveAiResponse('${res.replace(/'/g,"")}')" style="margin-top:5px; font-size:0.7rem">Guardar</button>`;
+    },
+    saveAiResponse(q) {
+        const p = this.getPerson(this.activePersonId);
+        p.notes.push({ id: Date.now(), html: `<b>IA Pregunta:</b> ${q}<br>R:`, color: 'yellow', date: new Date().toLocaleDateString() });
+        this.saveData(); this.renderNotes();
     }
 };
 
 window.addEventListener('DOMContentLoaded', () => App.init());
-
 </script>
 </body>
 </html>
