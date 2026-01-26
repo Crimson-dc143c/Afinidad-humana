@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinidad Humana V9.0 — Cloud Sync</title>
+    <title>Afinidad Humana V9.1 — Cloud Sync</title>
     
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
@@ -184,15 +184,15 @@
     </div>
 
 <script>
-// --- FIREBASE CONFIG ---
+// --- FIREBASE CONFIG ACTUALIZADO ---
 const firebaseConfig = {
-    apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
-    authDomain: "afinidad-humana.firebaseapp.com",
-    projectId: "afinidad-humana",
-    storageBucket: "afinidad-humana.firebasestorage.app",
-    messagingSenderId: "554727868325",
-    appId: "1:554727868325:web:5abf9aefbe3cddd2134a4c",
-    measurementId: "G-HY8CNBGCWK"
+  apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
+  authDomain: "afinidad-humana.firebaseapp.com",
+  projectId: "afinidad-humana",
+  storageBucket: "afinidad-humana.firebasestorage.app",
+  messagingSenderId: "554727868325",
+  appId: "1:554727868325:web:c3b9e259b0710d37134a4c",
+  measurementId: "G-NRKNBR00JC"
 };
 
 // Initialize Firebase
@@ -559,6 +559,7 @@ const App = {
         this.saveData(); this.renderNotes();
     },
 
+    // --- ACTIONS ---
     toggleTag(catKey, label) {
         const p = this.getPerson(this.activePersonId);
         const idx = p.categories[catKey].indexOf(label);
