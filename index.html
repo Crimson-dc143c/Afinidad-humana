@@ -205,11 +205,64 @@ const App = {
     data: {
         me: { id: 'me', name: 'YO', categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] }, notes: [] },
         people: [], apiKey: "", settings: { selectedForNetwork: [] },
-        library: [
-            { label: 'Honestidad', category: 'values' }, { label: 'Lealtad', category: 'values' },
-            { label: 'Emprender', category: 'aspirations' }, { label: 'Música', category: 'interests' },
-            { label: 'Analítico', category: 'traits' }
+library: [
+            // Valores
+            { id: 'v1', label: 'Honestidad', category: 'values' }, 
+            { id: 'v2', label: 'Lealtad', category: 'values' },
+            { id: 'v3', label: 'Respeto', category: 'values' }, 
+            { id: 'v4', label: 'Compasión', category: 'values' },
+            { id: 'v5', label: 'Perseverancia', category: 'values' }, 
+            { id: 'v6', label: 'Independencia', category: 'values' },
+            { id: 'v7', label: 'Tolerancia', category: 'values' }, 
+            // Aspiraciones (Metas)
+            { id: 'm1', label: 'Emprender', category: 'aspirations' },
+            { id: 'm2', label: 'Salud física', category: 'aspirations' },
+            { id: 'm3', label: 'Salud mental', category: 'aspirations' },
+            { id: 'm4', label: 'Desarrollo personal', category: 'aspirations' },
+            { id: 'm5', label: 'Crecimiento profesional', category: 'aspirations' },
+            { id: 'm6', label: 'Familia', category: 'aspirations' },
+            { id: 'm7', label: 'Amor', category: 'aspirations' },
+            // Intereses
+            { id: 'i1', label: 'Música', category: 'interests' },
+            { id: 'i2', label: 'Gimnasio', category: 'interests' },
+            { id: 'i3', label: 'Baile', category: 'interests' },
+            { id: 'i4', label: 'Cine', category: 'interests' },
+            { id: 'i5', label: 'Lectura', category: 'interests' },
+            { id: 'i6', label: 'Escritura', category: 'interests' },
+            { id: 'i7', label: 'Arte', category: 'interests' },
+            { id: 'i8', label: 'Deporte', category: 'interests' },
+            { id: 'i9', label: 'Tecnología', category: 'interests' },
+            // Rasgos
+            { id: 't1', label: 'Analítico', category: 'traits' },
+            { id: 't2', label: 'Creativo', category: 'traits' },
+            { id: 't3', label: 'Reflexivo', category: 'traits' },
+            { id: 't4', label: 'Sensible', category: 'traits' },
+            { id: 't5', label: 'Competitivo', category: 'traits' },
+            { id: 't6', label: 'Soñador', category: 'traits' },
+            { id: 't7', label: 'Directo', category: 'traits' },
+            { id: 't8', label: 'Diplomático', category: 'traits' },
+            { id: 't9', label: 'Tranquilo', category: 'traits' },
+            { id: 't10', label: 'Reservado', category: 'traits' },
+            { id: 't11', label: 'Energético', category: 'traits' },
+            { id: 't12', label: 'Adaptable', category: 'traits' },
+            { id: 't13', label: 'Responsable', category: 'traits' },
+            { id: 't14', label: 'Desordenado', category: 'traits' },
+            { id: 't15', label: 'Perfeccionista', category: 'traits' },
+            { id: 't16', label: 'Colaborador', category: 'traits' },
+            { id: 't17', label: 'Puntual', category: 'traits' },
+            // Extra
+            { id: 'e1', label: 'Perro', category: 'extras' },
+            { id: 'e2', label: 'Gato', category: 'extras' },
+            { id: 'e3', label: 'Dulce', category: 'extras' },
+            { id: 'e4', label: 'Salado', category: 'extras' },
+            { id: 'e5', label: 'Playa', category: 'extras' },
+            { id: 'e6', label: 'Montaña', category: 'extras' },
+            { id: 'e7', label: 'Madruga', category: 'extras' },
+            { id: 'e8', label: 'Trasnocha', category: 'extras' },
+            { id: 'e7', label: 'Introvertido', category: 'extras' },
+            { id: 'e8', label: 'Extrovertido', category: 'extras' },
         ],
+        
         catConfigs: [
             { key: 'values', label: '💜 Valores', weight: 3.0, color: '#d2a8ff', cssClass: 'cat-values' },
             { key: 'aspirations', label: '💚 Metas', weight: 2.0, color: '#7ee787', cssClass: 'cat-aspirations' },
@@ -696,3 +749,4 @@ window.addEventListener('DOMContentLoaded', () => App.init());
 </script>
 </body>
 </html>
+
