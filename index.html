@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinidad Humana V9.2 — Cloud Sync & Reset</title>
+    <title>Afinidad Humana V9.4 — Visual Fix</title>
     
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
@@ -80,12 +80,15 @@
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag-item { font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #e6edf3; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; position: relative; overflow: hidden; }
         .tag-item:hover { background: rgba(255,255,255,0.08); padding-right: 34px; }
-        .tag-item.active { font-weight: 700; background: rgba(212,244,255,0.04); border-color: transparent; color: #050505 !important; transform: scale(1.02); }
-        .tag-item.active.cat-values { background-color: var(--cat-val); }
-        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); }
-        .tag-item.active.cat-interests { background-color: var(--cat-int); }
-        .tag-item.active.cat-traits { background-color: var(--cat-trait); }
-        .tag-item.active.cat-extras { background-color: var(--cat-extra); }
+        
+        /* ESTILOS DE ETIQUETAS ACTIVAS */
+        .tag-item.active { font-weight: 700; border-color: transparent; color: #050505 !important; transform: scale(1.02); }
+        .tag-item.active.cat-values { background-color: var(--cat-val); box-shadow: 0 0 8px rgba(210, 168, 255, 0.4); }
+        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); box-shadow: 0 0 8px rgba(126, 231, 135, 0.4); }
+        .tag-item.active.cat-interests { background-color: var(--cat-int); box-shadow: 0 0 8px rgba(121, 192, 255, 0.4); }
+        .tag-item.active.cat-traits { background-color: var(--cat-trait); box-shadow: 0 0 8px rgba(240, 136, 62, 0.4); }
+        .tag-item.active.cat-extras { background-color: var(--cat-extra); box-shadow: 0 0 8px rgba(139, 148, 158, 0.4); }
+        
         .tag-item.local { border-style: dashed; opacity: 0.95; }
         .tag-del-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%) scale(0.5); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); color: inherit; font-size: 10px; opacity: 0; transition: 0.2s; pointer-events: none; }
         .tag-item:hover .tag-del-btn { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
@@ -189,6 +192,42 @@
     </div>
 
 <script>
+// --- CONSTANTE: BIBLIOTECA COMPLETA ---
+const DEFAULT_LIBRARY = [
+    // Valores
+    { id: 'v1', label: 'Honestidad', category: 'values' }, { id: 'v2', label: 'Lealtad', category: 'values' },
+    { id: 'v3', label: 'Respeto', category: 'values' }, { id: 'v4', label: 'Compasión', category: 'values' },
+    { id: 'v5', label: 'Perseverancia', category: 'values' }, { id: 'v6', label: 'Independencia', category: 'values' },
+    { id: 'v7', label: 'Tolerancia', category: 'values' }, 
+    // Aspiraciones (Metas)
+    { id: 'm1', label: 'Emprender', category: 'aspirations' }, { id: 'm2', label: 'Salud física', category: 'aspirations' },
+    { id: 'm3', label: 'Salud mental', category: 'aspirations' }, { id: 'm4', label: 'Desarrollo personal', category: 'aspirations' },
+    { id: 'm5', label: 'Crecimiento profesional', category: 'aspirations' }, { id: 'm6', label: 'Familia', category: 'aspirations' },
+    { id: 'm7', label: 'Amor', category: 'aspirations' },
+    // Intereses
+    { id: 'i1', label: 'Música', category: 'interests' }, { id: 'i2', label: 'Gimnasio', category: 'interests' },
+    { id: 'i3', label: 'Baile', category: 'interests' }, { id: 'i4', label: 'Cine', category: 'interests' },
+    { id: 'i5', label: 'Lectura', category: 'interests' }, { id: 'i6', label: 'Escritura', category: 'interests' },
+    { id: 'i7', label: 'Arte', category: 'interests' }, { id: 'i8', label: 'Deporte', category: 'interests' },
+    { id: 'i9', label: 'Tecnología', category: 'interests' },
+    // Rasgos
+    { id: 't1', label: 'Analítico', category: 'traits' }, { id: 't2', label: 'Creativo', category: 'traits' },
+    { id: 't3', label: 'Reflexivo', category: 'traits' }, { id: 't4', label: 'Sensible', category: 'traits' },
+    { id: 't5', label: 'Competitivo', category: 'traits' }, { id: 't6', label: 'Soñador', category: 'traits' },
+    { id: 't7', label: 'Directo', category: 'traits' }, { id: 't8', label: 'Diplomático', category: 'traits' },
+    { id: 't9', label: 'Tranquilo', category: 'traits' }, { id: 't10', label: 'Reservado', category: 'traits' },
+    { id: 't11', label: 'Energético', category: 'traits' }, { id: 't12', label: 'Adaptable', category: 'traits' },
+    { id: 't13', label: 'Responsable', category: 'traits' }, { id: 't14', label: 'Desordenado', category: 'traits' },
+    { id: 't15', label: 'Perfeccionista', category: 'traits' }, { id: 't16', label: 'Colaborador', category: 'traits' },
+    { id: 't17', label: 'Puntual', category: 'traits' },
+    // Extra
+    { id: 'e1', label: 'Perro', category: 'extras' }, { id: 'e2', label: 'Gato', category: 'extras' },
+    { id: 'e3', label: 'Dulce', category: 'extras' }, { id: 'e4', label: 'Salado', category: 'extras' },
+    { id: 'e5', label: 'Playa', category: 'extras' }, { id: 'e6', label: 'Montaña', category: 'extras' },
+    { id: 'e7', label: 'Madruga', category: 'extras' }, { id: 'e8', label: 'Trasnocha', category: 'extras' },
+    { id: 'e9', label: 'Introvertido', category: 'extras' }, { id: 'e10', label: 'Extrovertido', category: 'extras' }
+];
+
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
@@ -210,40 +249,7 @@ const App = {
     data: {
         me: { id: 'me', name: 'YO', categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] }, notes: [] },
         people: [], apiKey: "", settings: { selectedForNetwork: [] },
-        library: [
-            // Valores
-            { id: 'v1', label: 'Honestidad', category: 'values' }, { id: 'v2', label: 'Lealtad', category: 'values' },
-            { id: 'v3', label: 'Respeto', category: 'values' }, { id: 'v4', label: 'Compasión', category: 'values' },
-            { id: 'v5', label: 'Perseverancia', category: 'values' }, { id: 'v6', label: 'Independencia', category: 'values' },
-            { id: 'v7', label: 'Tolerancia', category: 'values' }, 
-            // Aspiraciones (Metas)
-            { id: 'm1', label: 'Emprender', category: 'aspirations' }, { id: 'm2', label: 'Salud física', category: 'aspirations' },
-            { id: 'm3', label: 'Salud mental', category: 'aspirations' }, { id: 'm4', label: 'Desarrollo personal', category: 'aspirations' },
-            { id: 'm5', label: 'Crecimiento profesional', category: 'aspirations' }, { id: 'm6', label: 'Familia', category: 'aspirations' },
-            { id: 'm7', label: 'Amor', category: 'aspirations' },
-            // Intereses
-            { id: 'i1', label: 'Música', category: 'interests' }, { id: 'i2', label: 'Gimnasio', category: 'interests' },
-            { id: 'i3', label: 'Baile', category: 'interests' }, { id: 'i4', label: 'Cine', category: 'interests' },
-            { id: 'i5', label: 'Lectura', category: 'interests' }, { id: 'i6', label: 'Escritura', category: 'interests' },
-            { id: 'i7', label: 'Arte', category: 'interests' }, { id: 'i8', label: 'Deporte', category: 'interests' },
-            { id: 'i9', label: 'Tecnología', category: 'interests' },
-            // Rasgos
-            { id: 't1', label: 'Analítico', category: 'traits' }, { id: 't2', label: 'Creativo', category: 'traits' },
-            { id: 't3', label: 'Reflexivo', category: 'traits' }, { id: 't4', label: 'Sensible', category: 'traits' },
-            { id: 't5', label: 'Competitivo', category: 'traits' }, { id: 't6', label: 'Soñador', category: 'traits' },
-            { id: 't7', label: 'Directo', category: 'traits' }, { id: 't8', label: 'Diplomático', category: 'traits' },
-            { id: 't9', label: 'Tranquilo', category: 'traits' }, { id: 't10', label: 'Reservado', category: 'traits' },
-            { id: 't11', label: 'Energético', category: 'traits' }, { id: 't12', label: 'Adaptable', category: 'traits' },
-            { id: 't13', label: 'Responsable', category: 'traits' }, { id: 't14', label: 'Desordenado', category: 'traits' },
-            { id: 't15', label: 'Perfeccionista', category: 'traits' }, { id: 't16', label: 'Colaborador', category: 'traits' },
-            { id: 't17', label: 'Puntual', category: 'traits' },
-            // Extra
-            { id: 'e1', label: 'Perro', category: 'extras' }, { id: 'e2', label: 'Gato', category: 'extras' },
-            { id: 'e3', label: 'Dulce', category: 'extras' }, { id: 'e4', label: 'Salado', category: 'extras' },
-            { id: 'e5', label: 'Playa', category: 'extras' }, { id: 'e6', label: 'Montaña', category: 'extras' },
-            { id: 'e7', label: 'Madruga', category: 'extras' }, { id: 'e8', label: 'Trasnocha', category: 'extras' },
-            { id: 'e9', label: 'Introvertido', category: 'extras' }, { id: 'e10', label: 'Extrovertido', category: 'extras' }
-        ],
+        library: JSON.parse(JSON.stringify(DEFAULT_LIBRARY)), 
         catConfigs: [
             { key: 'values', label: '💜 Valores', weight: 3.0, color: '#d2a8ff', cssClass: 'cat-values' },
             { key: 'aspirations', label: '💚 Metas', weight: 2.0, color: '#7ee787', cssClass: 'cat-aspirations' },
@@ -296,7 +302,13 @@ const App = {
             if (doc.exists) {
                 const cloudData = doc.data();
                 this.data = { ...this.data, ...cloudData };
-                console.log("☁️ Datos sincronizados desde la nube");
+                
+                // FIX: Si la nube devolvió una librería vacía, restauramos la default
+                if (!this.data.library || this.data.library.length === 0) {
+                     this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+                }
+
+                console.log("☁️ Datos sincronizados");
                 overlay.style.display = 'none';
                 if (this.view === 'MACRO') this.renderMacro();
                 else if (this.view === 'MICRO') this.enterMicro(this.activePersonId);
@@ -435,6 +447,8 @@ const App = {
         this.data.me = { id: 'me', name: 'YO', categories: {}, notes: [] };
         this.data.people = [];
         this.data.settings.selectedForNetwork = [];
+        this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+        
         this.data.catConfigs.forEach(c => { this.data.me.categories[c.key] = []; });
         localStorage.clear();
 
@@ -598,8 +612,12 @@ const App = {
 
     toggleTag(catKey, label) {
         const p = this.getPerson(this.activePersonId);
+        // FIX: Ensure category array exists
+        if (!p.categories[catKey]) p.categories[catKey] = [];
+        
         const idx = p.categories[catKey].indexOf(label);
         if (idx >= 0) p.categories[catKey].splice(idx, 1); else p.categories[catKey].push(label);
+        
         if (this.activePersonId === 'me' && !this.data.library.find(l => l.label === label && l.category === catKey)) {
             this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
         }
@@ -667,6 +685,27 @@ const App = {
     toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); },
     handleNodeClick(id) { if (id === 'me' || this.data.people.find(p => p.id === id)) this.enterMicro(id); },
     
+    // --- MICRO GRAPH DRAWING (FIXED) ---
+    drawMicroGraph() {
+        const p = this.getPerson(this.activePersonId);
+        this.nodes.clear(); this.edges.clear();
+        this.nodes.add({ id: 'center', label: p.name, shape: 'box', color: {background:'#fff', border:'#fff'}, font:{size:20, color:'#000'}, fixed:true });
+        let i = 0;
+        this.data.catConfigs.forEach(conf => {
+            if(p.categories[conf.key]) {
+                p.categories[conf.key].forEach(label => {
+                    i++;
+                    this.nodes.add({ id: 'n_'+i, label: label, shape: 'ellipse', color: { background: '#0d1117', border: conf.color }, font: { color: conf.color } });
+                    // FIX: Color de arista ahora es visible y coincide con la categoría
+                    this.edges.add({ from: 'center', to: 'n_'+i, color: { color: conf.color, opacity: 0.6 } });
+                });
+            }
+        });
+        // Improve layout stability
+        this.network.setOptions({ physics: { stabilization: false, barnesHut: { gravitationalConstant: -2000, springLength: 200 } } });
+        this.network.fit();
+    },
+
     // --- IA ---
     openSettings() { document.getElementById('settings-modal').style.display = 'flex'; },
     saveSettings() {
