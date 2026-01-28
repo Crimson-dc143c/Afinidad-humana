@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinidad Humana V9.4 — Visual Fix</title>
+    <title>Afinidad Humana V9.6 — Gemini 2.5</title>
     
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
@@ -29,7 +29,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
 
-        /* Sidebar Layout */
+        /* Layout */
         #sidebar-container {
             width: 420px; background: var(--panel); border-right: 1px solid var(--border);
             display: flex; flex-direction: row; z-index: 20; box-shadow: 4px 0 20px rgba(0,0,0,0.5);
@@ -47,9 +47,8 @@
             color: var(--text-muted); z-index: 25; transition: 0.3s; box-shadow: 4px 0 10px rgba(0,0,0,0.2); user-select: none;
         }
         #sidebar-toggle:hover { color: var(--accent); background: #1f262e; }
-        #sidebar-container.collapsed #sidebar-toggle { right: -24px; }
 
-        /* Componentes UI */
+        /* UI Generica */
         h2 { margin: 0; font-weight: 600; color: white; letter-spacing: -0.5px; }
         h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         input, textarea, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 8px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
@@ -60,47 +59,45 @@
         .btn-danger { color: var(--danger); border-color: var(--border); }
         .btn-ai { background: rgba(163, 113, 247, 0.1); border-color: var(--ai-color); color: var(--ai-color); }
         .btn-ai:hover { background: var(--ai-color); color: white; }
-        
-        /* Boton Login */
-        .btn-google { background: #fff; color: #333; font-weight: bold; border: none; }
-        .btn-google:hover { background: #eee; }
 
-        /* Listas y Tags */
+        /* Listas y Checkbox */
         .person-row { display: flex; align-items: center; padding: 8px; border-radius: 6px; margin-bottom: 4px; transition: background 0.2s; }
         .person-row:hover { background: rgba(255,255,255,0.03); }
         .person-check { margin-right: 10px; accent-color: var(--accent); cursor: pointer; width: 16px; height: 16px; }
         .person-info { flex-grow: 1; cursor: pointer; display: flex; justify-content: space-between; }
 
+        /* Acordeones */
         details { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
         summary { padding: 12px 15px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; list-style: none; }
         summary:after { content: '+'; font-size: 1.2rem; color: var(--text-muted); transition: 0.2s; }
         details[open] summary:after { content: '-'; color: var(--accent); transform: rotate(180deg); }
-        .details-content { padding: 15px; border-top: 1px solid var(--border); }
-        
+        .details-content { padding: 15px; border-top: 1px solid var(--border); pointer-events: auto; }
+        /* Fix de eventos */
+        details[open] summary { pointer-events: auto; }
+        summary * { pointer-events: auto !important; }
+
+        /* Tags */
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag-item { font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #e6edf3; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; position: relative; overflow: hidden; }
         .tag-item:hover { background: rgba(255,255,255,0.08); padding-right: 34px; }
-        
-        /* ESTILOS DE ETIQUETAS ACTIVAS */
-        .tag-item.active { font-weight: 700; border-color: transparent; color: #050505 !important; transform: scale(1.02); }
-        .tag-item.active.cat-values { background-color: var(--cat-val); box-shadow: 0 0 8px rgba(210, 168, 255, 0.4); }
-        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); box-shadow: 0 0 8px rgba(126, 231, 135, 0.4); }
-        .tag-item.active.cat-interests { background-color: var(--cat-int); box-shadow: 0 0 8px rgba(121, 192, 255, 0.4); }
-        .tag-item.active.cat-traits { background-color: var(--cat-trait); box-shadow: 0 0 8px rgba(240, 136, 62, 0.4); }
-        .tag-item.active.cat-extras { background-color: var(--cat-extra); box-shadow: 0 0 8px rgba(139, 148, 158, 0.4); }
-        
+        .tag-item.active { font-weight: 700; background: rgba(212,244,255,0.04); border-color: transparent; color: #050505 !important; transform: scale(1.02); }
+        .tag-item.active.cat-values { background-color: var(--cat-val); }
+        .tag-item.active.cat-aspirations { background-color: var(--cat-goal); }
+        .tag-item.active.cat-interests { background-color: var(--cat-int); }
+        .tag-item.active.cat-traits { background-color: var(--cat-trait); }
+        .tag-item.active.cat-extras { background-color: var(--cat-extra); }
         .tag-item.local { border-style: dashed; opacity: 0.95; }
         .tag-del-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%) scale(0.5); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); color: inherit; font-size: 10px; opacity: 0; transition: 0.2s; pointer-events: none; }
         .tag-item:hover .tag-del-btn { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
         .promote-btn { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: inherit; transition: 0.2s; }
         .promote-btn:hover { background: #fff; color: #000; }
 
-        /* Notas Editables */
+        /* Notas */
         #canvas-notes-panel { position: absolute; top: 20px; right: 20px; bottom: 20px; width: 320px; z-index: 40; display: none; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; pointer-events: none; }
         .note-card { pointer-events: auto; padding: 12px 15px; border-radius: 8px; position: relative; font-size: 0.9rem; border-left: 5px solid; color: #090c10; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); word-wrap: break-word; transition: transform 0.2s; }
         .note-card:hover { transform: scale(1.02); }
         .note-date { font-size: 0.7rem; opacity: 0.7; display: block; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 4px; }
-        .note-content[contenteditable="true"] { outline: 2px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.4); padding: 5px; border-radius: 4px; }
+        .note-content[contenteditable="true"] { outline: 2px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.4); padding: 5px; border-radius: 4px; min-height: 20px;}
         .note-card.yellow { background: rgba(255, 249, 196, 0.95); border-color: #fbc02d; }
         .note-card.red { background: rgba(255, 205, 210, 0.95); border-color: #e53935; }
         .note-card.green { background: rgba(200, 230, 201, 0.95); border-color: #43a047; }
@@ -108,9 +105,8 @@
         .note-actions { position: absolute; top: 8px; right: 8px; opacity: 0; transition: 0.2s; display: flex; gap: 5px; }
         .note-card:hover .note-actions { opacity: 1; }
         .mini-btn { border: none; background: rgba(0,0,0,0.1); border-radius:4px; cursor: pointer; font-size: 0.8rem; padding: 4px 6px; color:#333; }
-        .mini-btn:hover { background: rgba(0,0,0,0.2); }
 
-        /* Rich Editor & IA */
+        /* Rich Editor & IA Panel */
         .editor-container { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: #0d1117; }
         .editor-toolbar { display: flex; gap: 5px; padding: 5px; background: #161b22; border-bottom: 1px solid var(--border); }
         .editor-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
@@ -119,6 +115,8 @@
         
         .ai-panel { background: linear-gradient(135deg, rgba(163, 113, 247, 0.05) 0%, rgba(22, 27, 34, 0) 100%); border: 1px solid rgba(163, 113, 247, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
         .ai-response { font-size: 0.85rem; color: #d0d7de; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 10px; display: none; white-space: pre-wrap; border-left: 3px solid var(--ai-color); }
+        .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite;}
+        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; }}
 
         /* Espejo */
         .comp-row { display: flex; margin-bottom: 8px; font-size: 0.85rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
@@ -129,7 +127,7 @@
         .circle-green { background: var(--success); box-shadow: 0 0 5px var(--success); }
         .circle-red { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
 
-        /* Canvas & Top Bar */
+        /* Top Bar */
         #top-mode-bar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(22, 27, 34, 0.9); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--border); display: flex; gap: 15px; z-index: 50; box-shadow: 0 5px 20px rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; }
         .mode-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-weight: 600; padding: 5px 10px; border-radius: 15px; transition: 0.2s; font-size: 0.9rem; }
         .mode-btn.active { background: var(--accent); color: #090c10; box-shadow: 0 0 10px var(--accent); }
@@ -145,7 +143,7 @@
 <body>
 
     <div id="auth-overlay">
-        <h1 style="color:white; margin-bottom:10px;">Afinidad Humana V9</h1>
+        <h1 style="color:white; margin-bottom:10px;">Afinidad Humana V9.6</h1>
         <p style="color:var(--text-muted); margin-bottom:30px;">Cargando sistema...</p>
     </div>
 
@@ -177,11 +175,10 @@
     <div id="settings-modal">
         <div class="modal-box">
             <h2>⚙️ Configuración</h2>
-            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">OpenAI API Key para funciones inteligentes.</p>
+            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">OpenAI/Google API Key para IA (Gemini 2.5).</p>
             <input type="password" id="api-key-input" placeholder="sk-..." style="margin-top:15px;">
             
             <h3 style="color:var(--danger); border-bottom-color:var(--danger); margin-top:30px;">Zona de Peligro</h3>
-            <p style="font-size:0.75rem; color:var(--text-muted);">Esto borrará permanentemente todos tus datos en la nube y localmente.</p>
             <button class="btn btn-danger" onclick="App.resetEverything()" style="background: rgba(248, 81, 73, 0.1);">🔥 Resetear todos los datos</button>
             
             <div style="display:flex; gap:10px; margin-top:20px;">
@@ -192,7 +189,7 @@
     </div>
 
 <script>
-// --- CONSTANTE: BIBLIOTECA COMPLETA ---
+// --- CONSTANTES ---
 const DEFAULT_LIBRARY = [
     // Valores
     { id: 'v1', label: 'Honestidad', category: 'values' }, { id: 'v2', label: 'Lealtad', category: 'values' },
@@ -228,7 +225,9 @@ const DEFAULT_LIBRARY = [
     { id: 'e9', label: 'Introvertido', category: 'extras' }, { id: 'e10', label: 'Extrovertido', category: 'extras' }
 ];
 
-// --- FIREBASE CONFIG ---
+
+
+// --- FIREBASE CONFIG (Tu configuración) ---
 const firebaseConfig = {
   apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
   authDomain: "afinidad-humana.firebaseapp.com",
@@ -239,13 +238,12 @@ const firebaseConfig = {
   measurementId: "G-NRKNBR00JC"
 };
 
-// Initialize Firebase
+// Initialize Firebase (Compat)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
 const App = {
-    // --- STATE ---
     data: {
         me: { id: 'me', name: 'YO', categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] }, notes: [] },
         people: [], apiKey: "", settings: { selectedForNetwork: [] },
@@ -302,12 +300,9 @@ const App = {
             if (doc.exists) {
                 const cloudData = doc.data();
                 this.data = { ...this.data, ...cloudData };
-                
-                // FIX: Si la nube devolvió una librería vacía, restauramos la default
                 if (!this.data.library || this.data.library.length === 0) {
                      this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
                 }
-
                 console.log("☁️ Datos sincronizados");
                 overlay.style.display = 'none';
                 if (this.view === 'MACRO') this.renderMacro();
@@ -321,7 +316,7 @@ const App = {
             }
         }, err => {
             console.error(err);
-            alert("Error de conexión con la base de datos");
+            alert("Error de conexión");
             document.getElementById('auth-overlay').style.display = 'none';
         });
     },
@@ -332,7 +327,7 @@ const App = {
             if (this.saveTimeout) clearTimeout(this.saveTimeout);
             const doSave = () => {
                 db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)))
-                .then(() => console.log("☁️ Guardado en Firebase"))
+                .then(() => console.log("☁️ Guardado"))
                 .catch(e => console.error("Error guardando:", e));
             };
             if(force) doSave();
@@ -363,6 +358,7 @@ const App = {
 
     getPerson(id) { return id === 'me' ? this.data.me : this.data.people.find(p => p.id === id); },
 
+    // --- ALGORITMOS DE AFINIDAD ---
     calculateAffinity(p1, p2) {
         let totalWeight = 0; let matchWeight = 0;
         this.data.catConfigs.forEach(conf => {
@@ -383,6 +379,7 @@ const App = {
         return `rgba(248, 81, 73, ${alpha})`; 
     },
 
+    // --- MACRO VIEW ---
     setMacroView(mode) {
         this.macroMode = mode; this.view = 'MACRO';
         document.getElementById('btn-radial').className = `mode-btn ${mode==='radial'?'active':''}`;
@@ -437,34 +434,6 @@ const App = {
         }).join('');
     },
 
-    async resetEverything() {
-        const confirm1 = confirm("¿ESTÁS SEGURO? Se borrarán todas las personas, notas y tu configuración de ADN permanentemente.");
-        if (!confirm1) return;
-        
-        const confirm2 = confirm("ESTA ACCIÓN NO SE PUEDE DESHACER. ¿Realmente quieres borrar todo?");
-        if (!confirm2) return;
-
-        this.data.me = { id: 'me', name: 'YO', categories: {}, notes: [] };
-        this.data.people = [];
-        this.data.settings.selectedForNetwork = [];
-        this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
-        
-        this.data.catConfigs.forEach(c => { this.data.me.categories[c.key] = []; });
-        localStorage.clear();
-
-        if (this.user) {
-            try {
-                await db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)));
-                alert("Nube reseteada con éxito.");
-            } catch (e) {
-                console.error("Error al resetear nube:", e);
-                alert("Error al borrar datos en la nube.");
-            }
-        }
-        document.getElementById('settings-modal').style.display = 'none';
-        this.renderMacro();
-    },
-
     toggleSelection(id) {
         const list = this.data.settings.selectedForNetwork;
         const idx = list.indexOf(id);
@@ -480,6 +449,7 @@ const App = {
     drawMacroGraph() {
         this.nodes.clear(); this.edges.clear();
         this.nodes.add({ id: 'me', label: this.data.me.name, color: { background: '#fff', border: '#fff' }, font: { color: '#000', size: 18, bold: true }, shape: 'circle', size: 30 });
+
         const visiblePeople = this.data.people.filter(p => this.data.settings.selectedForNetwork.includes(p.id));
 
         visiblePeople.forEach(p => {
@@ -488,7 +458,16 @@ const App = {
                 const aff = Math.round(this.calculateAffinity(this.data.me, p));
                 const width = Math.max(1, aff / 15);
                 let edgeColor = this.getAffinityColor(aff, 0.6);
-                this.edges.add({ from: 'me', to: p.id, length: Math.max(80, 450 - (aff * 4)), width: width, color: { color: edgeColor }, label: aff + '%', font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } });
+                
+                // Etiqueta de porcentaje en la red social
+                this.edges.add({ 
+                    from: 'me', to: p.id, 
+                    length: Math.max(80, 450 - (aff * 4)), 
+                    width: width, 
+                    color: { color: edgeColor }, 
+                    label: aff + '%', 
+                    font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } 
+                });
             }
         });
 
@@ -498,7 +477,7 @@ const App = {
                 for (let j = i + 1; j < allNodes.length; j++) {
                     const aff = Math.round(this.calculateAffinity(allNodes[i], allNodes[j]));
                     if (aff > 0) { 
-                        this.edges.add({ from: allNodes[i].id, to: allNodes[j].id, width: Math.max(0.5, aff / 25), color: { color: this.getAffinityColor(aff, 0.4) }, length: 300 - (aff * 2), label: aff + '%', font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } });
+                        this.edges.add({ from: allNodes[i].id, to: allNodes[j].id, width: Math.max(0.5, aff / 25), color: { color: this.getAffinityColor(aff, 0.4) }, length: 300 - (aff * 2), label: aff + '%', font: { size: 9, color: '#888', background: 'transparent', strokeWidth: 0 } });
                     }
                 }
             }
@@ -506,6 +485,7 @@ const App = {
         this.network.fit();
     },
 
+    // --- MICRO VIEW ---
     enterMicro(id) {
         this.view = 'MICRO'; this.activePersonId = id;
         document.getElementById('top-mode-bar').style.display = 'none';
@@ -592,9 +572,18 @@ const App = {
     renderNotes() {
         const panel = document.getElementById('canvas-notes-panel');
         const p = this.getPerson(this.activePersonId);
+        // ORDEN INVERSO: Nuevas arriba
         const notes = (p.notes || []).sort((a,b) => b.id - a.id);
         if (notes.length === 0) { panel.innerHTML = ''; return; }
-        panel.innerHTML = notes.map(n => `<div class="note-card ${n.color}"><span class="note-date">${n.date}</span><div class="note-content" contenteditable="true" onblur="App.updateNoteContent(${n.id}, this.innerHTML)">${n.html || n.text}</div><div class="note-actions"><button class="mini-btn" title="Eliminar nota" onclick="App.deleteNote(${n.id})">✕</button></div></div>`).join('');
+        // NOTAS EDITABLES
+        panel.innerHTML = notes.map(n => `
+            <div class="note-card ${n.color}">
+                <span class="note-date">${n.date}</span>
+                <div class="note-content" contenteditable="true" onblur="App.updateNoteContent(${n.id}, this.innerHTML)">${n.html || n.text}</div>
+                <div class="note-actions">
+                    <button class="mini-btn" title="Eliminar nota" onclick="App.deleteNote(${n.id})">✕</button>
+                </div>
+            </div>`).join('');
     },
 
     updateNoteContent(id, newHtml) {
@@ -612,7 +601,6 @@ const App = {
 
     toggleTag(catKey, label) {
         const p = this.getPerson(this.activePersonId);
-        // FIX: Ensure category array exists
         if (!p.categories[catKey]) p.categories[catKey] = [];
         
         const idx = p.categories[catKey].indexOf(label);
@@ -685,7 +673,7 @@ const App = {
     toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); },
     handleNodeClick(id) { if (id === 'me' || this.data.people.find(p => p.id === id)) this.enterMicro(id); },
     
-    // --- MICRO GRAPH DRAWING (FIXED) ---
+    // --- MICRO GRAPH DRAWING ---
     drawMicroGraph() {
         const p = this.getPerson(this.activePersonId);
         this.nodes.clear(); this.edges.clear();
@@ -696,57 +684,113 @@ const App = {
                 p.categories[conf.key].forEach(label => {
                     i++;
                     this.nodes.add({ id: 'n_'+i, label: label, shape: 'ellipse', color: { background: '#0d1117', border: conf.color }, font: { color: conf.color } });
-                    // FIX: Color de arista ahora es visible y coincide con la categoría
                     this.edges.add({ from: 'center', to: 'n_'+i, color: { color: conf.color, opacity: 0.6 } });
                 });
             }
         });
-        // Improve layout stability
         this.network.setOptions({ physics: { stabilization: false, barnesHut: { gravitationalConstant: -2000, springLength: 200 } } });
         this.network.fit();
     },
 
-    // --- IA ---
+    async resetEverything() {
+        if (!confirm("¿ESTÁS SEGURO? Se borrarán todos los datos.")) return;
+        this.data.me = { id: 'me', name: 'YO', categories: {}, notes: [] };
+        this.data.people = [];
+        this.data.settings.selectedForNetwork = [];
+        this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+        this.data.catConfigs.forEach(c => { this.data.me.categories[c.key] = []; });
+        localStorage.clear();
+        if (this.user) {
+            await db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)));
+        }
+        document.getElementById('settings-modal').style.display = 'none';
+        this.renderMacro();
+    },
+
+    // --- INTEGRACIÓN AVANZADA GEMINI 2.5 (FIX) ---
+    getCleanContext(p) {
+        const notesText = (p.notes || [])
+            .sort((a,b) => a.id - b.id)
+            .map(n => `[${n.date}]: ${(n.html || n.text || '').replace(/<[^>]*>?/gm, '')}`)
+            .join("\n");
+        return `SUJETO: ${p.name}\nETIQUETAS: ${JSON.stringify(p.categories)}\nNOTAS:\n${notesText || "Sin notas."}`;
+    },
+
+    async callAI(systemRole, userContext) {
+        if(!this.data.apiKey) return alert("Falta API Key. Ve a ⚙️ Configuración.");
+        const out = document.getElementById('ai-output');
+        out.style.display = 'block'; out.innerHTML = `<span class="loading-dots">Pensando</span>`; 
+        
+        try {
+            // FIX: Usamos el modelo Gemini 2.5 Flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.data.apiKey}`;
+            const payload = {
+                system_instruction: { parts: [{ text: systemRole }] },
+                contents: [{ role: "user", parts: [{ text: userContext }] }],
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                ],
+                generationConfig: { temperature: 0.8, maxOutputTokens: 500 }
+            };
+
+            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const res = await response.json();
+
+            if (res.error) {
+                console.error("Gemini Error:", res.error);
+                let msg = res.error.message || "Error desconocido";
+                if (res.error.code === 400) msg = "API Key inválida o modelo no encontrado.";
+                out.innerHTML = `<span style="color:#ff6b6b">${msg}</span>`;
+                return null;
+            }
+            if (res.candidates && res.candidates[0].content) return res.candidates[0].content.parts[0].text;
+            return "Sin respuesta.";
+
+        } catch(e) { 
+            console.error(e);
+            out.innerText = "Error de red.";
+            return null;
+        }
+    },
+
+    async aiSuggestTags() {
+        const p = this.getPerson(this.activePersonId);
+        const sys = `Eres un perfilador psicológico. Lee las notas y etiquetas del sujeto. DEDUCE 5 rasgos, valores o intereses NUEVOS que no tenga ya. Responde SOLO con la lista separada por comas.`;
+        const res = await this.callAI(sys, this.getCleanContext(p));
+        if(res) document.getElementById('ai-output').innerText = "Sugerencias: " + res;
+    },
+
+    async aiProfile() {
+        const p = this.getPerson(this.activePersonId);
+        const sys = `Eres un psicólogo experto. Crea un perfil breve (max 50 palabras) sobre la motivación oculta y posibles conflictos de esta persona. Sé directo.`;
+        const res = await this.callAI(sys, this.getCleanContext(p));
+        if(res) document.getElementById('ai-output').innerHTML = res.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent)">$1</strong>').replace(/\n/g, '<br>');
+    },
+
+    async aiInterview() {
+        const p = this.getPerson(this.activePersonId);
+        const sys = `Eres un entrevistador profundo. Genera UNA pregunta diseñada para revelar los valores reales de esta persona.`;
+        const res = await this.callAI(sys, this.getCleanContext(p));
+        if(res) {
+            const cleanQ = res.replace(/"/g, '');
+            document.getElementById('ai-output').innerHTML = `<div style="font-style:italic; margin-bottom:10px">"${cleanQ}"</div><button class="btn btn-primary" onclick="App.saveAiResponse('${cleanQ.replace(/'/g, "\\'")}')" style="font-size:0.75rem">Guardar</button>`;
+        }
+    },
+
+    saveAiResponse(q) {
+        const p = this.getPerson(this.activePersonId);
+        p.notes.push({ id: Date.now(), html: `<b>🤖 Pregunta IA:</b> ${q}<br><br><b>R:</b> ...`, color: 'yellow', date: new Date().toLocaleDateString() });
+        this.saveData(); this.renderNotes();
+        document.getElementById('ai-output').innerHTML = `<span style="color:var(--success)">Guardado.</span>`;
+    },
+
     openSettings() { document.getElementById('settings-modal').style.display = 'flex'; },
     saveSettings() {
         this.data.apiKey = document.getElementById('api-key-input').value;
         this.saveData(); document.getElementById('settings-modal').style.display = 'none';
-        if(this.view === 'MICRO') this.enterMicro(this.activePersonId);
-    },
-    async callAI(sys, user) {
-        if(!this.data.apiKey) return alert("Configura tu API Key primero en ⚙️");
-        const out = document.getElementById('ai-output');
-        out.style.display = 'block'; out.innerText = "Pensando..."; out.classList.add('loading-dots');
-        try {
-            const req = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${this.data.apiKey}`},
-                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{role:"system",content:sys},{role:"user",content:user}] })
-            });
-            const res = await req.json();
-            out.classList.remove('loading-dots');
-            if(res.error) return out.innerText = "Error: " + res.error.message;
-            return res.choices[0].message.content;
-        } catch(e) { out.innerText = "Error conexión"; }
-    },
-    async aiSuggestTags() {
-        const p = this.getPerson(this.activePersonId);
-        const res = await this.callAI("Eres experto en psicología. Da 5 etiquetas cortas (valores/rasgos) separadas por comas.", `Perfil: ${JSON.stringify(p.categories)}`);
-        if(res) document.getElementById('ai-output').innerText = "Sugerencias: " + res;
-    },
-    async aiProfile() {
-        const p = this.getPerson(this.activePersonId);
-        const res = await this.callAI("Crea un perfil psicológico breve (max 50 palabras) en 2da persona.", `Datos: ${JSON.stringify(p.categories)}`);
-        if(res) document.getElementById('ai-output').innerText = res;
-    },
-    async aiInterview() {
-        const p = this.getPerson(this.activePersonId);
-        const res = await this.callAI("Genera una pregunta profunda para conectar con esta persona.", `Intereses: ${JSON.stringify(p.categories)}`);
-        if(res) document.getElementById('ai-output').innerHTML = `<em>"${res}"</em> <button class="btn btn-primary" onclick="App.saveAiResponse('${res.replace(/'/g,"")}')" style="margin-top:5px; font-size:0.7rem">Guardar</button>`;
-    },
-    saveAiResponse(q) {
-        const p = this.getPerson(this.activePersonId);
-        p.notes.push({ id: Date.now(), html: `<b>IA Pregunta:</b> ${q}<br>R:`, color: 'yellow', date: new Date().toLocaleDateString() });
-        this.saveData(); this.renderNotes();
     }
 };
 
