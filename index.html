@@ -80,6 +80,22 @@
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag-item { font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #e6edf3; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; position: relative; overflow: hidden; }
         .tag-item:hover { background: rgba(255,255,255,0.08); padding-right: 34px; }
+/* --- FIX REAL: Evitar colapso accidental pero permitir cerrar manualmente --- */
+
+/* Evita colapsos cuando el contenedor se mueve */
+details[open] .details-content {
+    pointer-events: auto;
+}
+
+/* El summary sigue recibiendo clicks normalmente */
+details[open] summary {
+    pointer-events: auto; 
+}
+
+/* PERO evitamos que los elementos internos dentro de summary causen cierre */
+summary * {
+    pointer-events: auto !important;
+}
         .tag-item.active { font-weight: 700; background: rgba(212,244,255,0.04); border-color: transparent; color: #050505 !important; transform: scale(1.02); }
         .tag-item.active.cat-values { background-color: var(--cat-val); }
         .tag-item.active.cat-aspirations { background-color: var(--cat-goal); }
