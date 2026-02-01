@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinidad Humana V9.6 — Gemini 2.5</title>
+    <title>Afinidad Humana V10.4 — Visual Fix</title>
     
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
@@ -14,7 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ESTILOS BASE --- */
         :root {
             --bg: #090c10; --panel: #161b22; --border: #30363d;
             --text-main: #c9d1d9; --text-muted: #8b949e;
@@ -29,30 +28,21 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
 
-        /* Layout */
-        #sidebar-container {
-            width: 420px; background: var(--panel); border-right: 1px solid var(--border);
-            display: flex; flex-direction: row; z-index: 20; box-shadow: 4px 0 20px rgba(0,0,0,0.5);
-            height: 100vh; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; flex-shrink: 0;
-        }
+        #sidebar-container { width: 460px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: row; z-index: 20; box-shadow: 4px 0 20px rgba(0,0,0,0.5); height: 100vh; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; flex-shrink: 0; }
         #sidebar-container.collapsed { width: 0; border: none; }
         #sidebar-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0px; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); background: var(--panel); flex-shrink: 0; z-index: 10; }
-        #sidebar-ui { overflow-y: auto; overflow-x: hidden; height: 100%; padding: 20px; }
+        
+        #sidebar-ui { overflow-y: auto; overflow-x: hidden; height: 100%; padding: 20px; padding-bottom: 150px; }
 
-        #sidebar-toggle {
-            position: absolute; top: 50%; right: -24px; width: 24px; height: 48px;
-            background: var(--panel); border: 1px solid var(--border); border-left: none;
-            border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--text-muted); z-index: 25; transition: 0.3s; box-shadow: 4px 0 10px rgba(0,0,0,0.2); user-select: none;
-        }
+        #sidebar-toggle { position: absolute; top: 50%; right: -24px; width: 24px; height: 48px; background: var(--panel); border: 1px solid var(--border); border-left: none; border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); z-index: 25; transition: 0.3s; user-select: none; }
         #sidebar-toggle:hover { color: var(--accent); background: #1f262e; }
 
-        /* UI Generica */
         h2 { margin: 0; font-weight: 600; color: white; letter-spacing: -0.5px; }
         h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         input, textarea, select { background: #0d1117; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 8px; outline: none; font-size: 0.9rem; transition: border-color 0.2s; }
         input:focus, textarea:focus { border-color: var(--accent); }
+        
         .btn { background: var(--panel); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap:5px;}
         .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(88, 166, 255, 0.1); }
         .btn-primary { background: var(--accent); color: #090c10; border: none; font-weight: 700; }
@@ -60,42 +50,33 @@
         .btn-ai { background: rgba(163, 113, 247, 0.1); border-color: var(--ai-color); color: var(--ai-color); }
         .btn-ai:hover { background: var(--ai-color); color: white; }
 
-        /* Listas y Checkbox */
+        .filter-panel { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .filter-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; font-size: 0.8rem; color: var(--text-muted); }
+        input[type=range] { height: 4px; border-radius: 2px; background: var(--border); appearance: none; margin: 0 10px; }
+        input[type=range]::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+
         .person-row { display: flex; align-items: center; padding: 8px; border-radius: 6px; margin-bottom: 4px; transition: background 0.2s; }
         .person-row:hover { background: rgba(255,255,255,0.03); }
         .person-check { margin-right: 10px; accent-color: var(--accent); cursor: pointer; width: 16px; height: 16px; }
         .person-info { flex-grow: 1; cursor: pointer; display: flex; justify-content: space-between; }
 
-        /* Acordeones */
         details { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
-        summary { padding: 12px 15px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; list-style: none; }
+        summary { padding: 12px 15px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; list-style: none; user-select: none; }
         summary:after { content: '+'; font-size: 1.2rem; color: var(--text-muted); transition: 0.2s; }
         details[open] summary:after { content: '-'; color: var(--accent); transform: rotate(180deg); }
-        .details-content { padding: 15px; border-top: 1px solid var(--border); pointer-events: auto; }
-        /* Fix de eventos */
-        details[open] summary { pointer-events: auto; }
-        summary * { pointer-events: auto !important; }
+        .details-content { padding: 15px; border-top: 1px solid var(--border); }
+        .cat-delete-btn { background:none; border:none; cursor:pointer; font-size:1rem; padding:0 5px; opacity:0.6; transition:0.2s; }
+        .cat-delete-btn:hover { opacity:1; transform:scale(1.2); }
 
-        /* Tags */
+        .relation-control { display: flex; gap: 10px; margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
+
+        .evolution-chart { width: 100%; height: 50px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 15px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+        .evolution-line { fill: none; stroke: var(--success); stroke-width: 2; vector-effect: non-scaling-stroke; }
+        .chart-label { position: absolute; font-size: 0.6rem; color: var(--text-muted); padding: 2px; }
+
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag-item { font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #e6edf3; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; position: relative; overflow: hidden; }
         .tag-item:hover { background: rgba(255,255,255,0.08); padding-right: 34px; }
-/* --- FIX REAL: Evitar colapso accidental pero permitir cerrar manualmente --- */
-
-/* Evita colapsos cuando el contenedor se mueve */
-details[open] .details-content {
-    pointer-events: auto;
-}
-
-/* El summary sigue recibiendo clicks normalmente */
-details[open] summary {
-    pointer-events: auto; 
-}
-
-/* PERO evitamos que los elementos internos dentro de summary causen cierre */
-summary * {
-    pointer-events: auto !important;
-}
         .tag-item.active { font-weight: 700; background: rgba(212,244,255,0.04); border-color: transparent; color: #050505 !important; transform: scale(1.02); }
         .tag-item.active.cat-values { background-color: var(--cat-val); }
         .tag-item.active.cat-aspirations { background-color: var(--cat-goal); }
@@ -103,26 +84,25 @@ summary * {
         .tag-item.active.cat-traits { background-color: var(--cat-trait); }
         .tag-item.active.cat-extras { background-color: var(--cat-extra); }
         .tag-item.local { border-style: dashed; opacity: 0.95; }
+        
         .tag-del-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%) scale(0.5); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); color: inherit; font-size: 10px; opacity: 0; transition: 0.2s; pointer-events: none; }
         .tag-item:hover .tag-del-btn { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
-        .promote-btn { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: inherit; transition: 0.2s; }
+        .promote-btn { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: inherit; transition: 0.2s; pointer-events: auto; }
         .promote-btn:hover { background: #fff; color: #000; }
 
-        /* Notas */
         #canvas-notes-panel { position: absolute; top: 20px; right: 20px; bottom: 20px; width: 320px; z-index: 40; display: none; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; pointer-events: none; }
-        .note-card { pointer-events: auto; padding: 12px 15px; border-radius: 8px; position: relative; font-size: 0.9rem; border-left: 5px solid; color: #090c10; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); word-wrap: break-word; transition: transform 0.2s; }
-        .note-card:hover { transform: scale(1.02); }
-        .note-date { font-size: 0.7rem; opacity: 0.7; display: block; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 4px; }
-        .note-content[contenteditable="true"] { outline: 2px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.4); padding: 5px; border-radius: 4px; min-height: 20px;}
-        .note-card.yellow { background: rgba(255, 249, 196, 0.95); border-color: #fbc02d; }
-        .note-card.red { background: rgba(255, 205, 210, 0.95); border-color: #e53935; }
-        .note-card.green { background: rgba(200, 230, 201, 0.95); border-color: #43a047; }
-        .note-card.blue { background: rgba(187, 222, 251, 0.95); border-color: #1e88e5; }
+        .note-card { pointer-events: auto; padding: 12px 15px; border-radius: 4px; position: relative; font-size: 0.9rem; border-left: 4px solid; background: rgba(255,255,255,0.03); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.2); backdrop-filter: blur(4px); word-wrap: break-word; transition: transform 0.2s; }
+        .note-card:hover { transform: scale(1.01); background: rgba(255,255,255,0.05); }
+        .note-date { font-size: 0.65rem; opacity: 0.6; display: block; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+        .note-content[contenteditable="true"] { outline: none; padding: 2px; }
+        .note-card.yellow { border-color: #fbc02d; }
+        .note-card.red { border-color: #e53935; }
+        .note-card.green { border-color: #43a047; }
+        .note-card.blue { border-color: #1e88e5; }
         .note-actions { position: absolute; top: 8px; right: 8px; opacity: 0; transition: 0.2s; display: flex; gap: 5px; }
         .note-card:hover .note-actions { opacity: 1; }
-        .mini-btn { border: none; background: rgba(0,0,0,0.1); border-radius:4px; cursor: pointer; font-size: 0.8rem; padding: 4px 6px; color:#333; }
+        .mini-btn { border: none; background: rgba(255,255,255,0.1); border-radius:4px; cursor: pointer; font-size: 0.8rem; padding: 4px 6px; color:inherit; }
 
-        /* Rich Editor & IA Panel */
         .editor-container { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: #0d1117; }
         .editor-toolbar { display: flex; gap: 5px; padding: 5px; background: #161b22; border-bottom: 1px solid var(--border); }
         .editor-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
@@ -130,20 +110,19 @@ summary * {
         #rich-editor { min-height: 80px; padding: 10px; color: white; outline: none; font-size: 0.9rem; line-height: 1.5; }
         
         .ai-panel { background: linear-gradient(135deg, rgba(163, 113, 247, 0.05) 0%, rgba(22, 27, 34, 0) 100%); border: 1px solid rgba(163, 113, 247, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .ai-response { font-size: 0.85rem; color: #d0d7de; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 10px; display: none; white-space: pre-wrap; border-left: 3px solid var(--ai-color); }
+        .ai-response { font-size: 0.85rem; color: #d0d7de; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-top: 10px; display: none; white-space: pre-wrap; word-wrap: break-word; border-left: 3px solid var(--ai-color); height: auto; min-height: 50px; overflow: visible; line-height: 1.6; flex-shrink: 0; }
         .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite;}
         @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; }}
 
-        /* Espejo */
-        .comp-row { display: flex; margin-bottom: 8px; font-size: 0.85rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
+        .comp-row { display: flex; margin-bottom: 4px; font-size: 0.85rem; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
         .comp-col { flex: 1; padding: 5px; }
         .comp-col.shared { color: var(--cat-goal); }
-        .comp-col.diff { color: var(--danger); text-align: right; }
+        .comp-col.diff-them { color: var(--danger); } 
+        .comp-col.diff-me { color: var(--cat-extra); opacity: 0.7; }
         .circle-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
         .circle-green { background: var(--success); box-shadow: 0 0 5px var(--success); }
         .circle-red { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
 
-        /* Top Bar */
         #top-mode-bar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(22, 27, 34, 0.9); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--border); display: flex; gap: 15px; z-index: 50; box-shadow: 0 5px 20px rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; }
         .mode-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-weight: 600; padding: 5px 10px; border-radius: 15px; transition: 0.2s; font-size: 0.9rem; }
         .mode-btn.active { background: var(--accent); color: #090c10; box-shadow: 0 0 10px var(--accent); }
@@ -151,16 +130,22 @@ summary * {
         
         #settings-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; display:none; align-items:center; justify-content:center; }
         .modal-box { background: var(--panel); padding: 25px; border-radius: 10px; border: 1px solid var(--border); width: 400px; max-width: 90%; }
-        
-        /* Auth Overlay */
         #auth-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(9, 12, 16, 0.9); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+
+        body.theme-cyber { --bg: #050510; --panel: #0a0a1a; --border: #b300b3; --text-main: #e0faff; --text-muted: #800080; --accent: #00ffff; --danger: #ff0055; --success: #00ff66; --gold: #ffff00; --ai-color: #ff00ff; --cat-val: #ff00ff; --cat-goal: #00ff00; --cat-int: #00ffff; --cat-trait: #ffff00; --cat-extra: #ffffff; }
+        body.skin-minimal { --bg: #ffffff; --panel: #f8f9fa; --border: #e1e4e8; --text-main: #24292e; --text-muted: #6a737d; --accent: #0366d6; --ai-color: #6f42c1; }
+        body.skin-minimal #sidebar-container, body.skin-minimal #top-mode-bar, body.skin-minimal .modal-box { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body.skin-minimal input, body.skin-minimal textarea, body.skin-minimal select { background: #fff; color: #000; border: 1px solid #ccc; }
+        body.skin-minimal h2 { color: #000; }
+        body.skin-minimal .note-card { background: #fff; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        body.skin-ocean { --bg: #0f172a; --panel: #1e293b; --border: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --accent: #38bdf8; --ai-color: #818cf8; }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
-        <h1 style="color:white; margin-bottom:10px;">Afinidad Humana V9.6</h1>
-        <p style="color:var(--text-muted); margin-bottom:30px;">Cargando sistema...</p>
+        <h1 style="color:white; margin-bottom:10px;">Afinidad Humana V10.4</h1>
+        <p style="color:var(--text-muted); margin-bottom:30px;">Cargando...</p>
     </div>
 
     <div id="sidebar-container">
@@ -191,12 +176,17 @@ summary * {
     <div id="settings-modal">
         <div class="modal-box">
             <h2>⚙️ Configuración</h2>
-            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">OpenAI/Google API Key para IA (Gemini 2.5).</p>
+            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">API Key (Google Gemini)</p>
             <input type="password" id="api-key-input" placeholder="sk-..." style="margin-top:15px;">
-            
+            <h3 style="margin-top:20px;">🎨 Personalización</h3>
+            <select id="skin-select" onchange="App.applySkin(this.value)">
+                <option value="default">Por defecto (Github Dark)</option>
+                <option value="theme-cyber">Cyberpunk Neon</option>
+                <option value="skin-minimal">Minimal Light</option>
+                <option value="skin-ocean">Deep Ocean</option>
+            </select> 
             <h3 style="color:var(--danger); border-bottom-color:var(--danger); margin-top:30px;">Zona de Peligro</h3>
             <button class="btn btn-danger" onclick="App.resetEverything()" style="background: rgba(248, 81, 73, 0.1);">🔥 Resetear todos los datos</button>
-            
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" onclick="App.saveSettings()">Guardar</button>
                 <button class="btn" onclick="document.getElementById('settings-modal').style.display='none'">Cancelar</button>
@@ -205,7 +195,6 @@ summary * {
     </div>
 
 <script>
-// --- CONSTANTES ---
 const DEFAULT_LIBRARY = [
     // Valores
     { id: 'v1', label: 'Honestidad', category: 'values' }, { id: 'v2', label: 'Lealtad', category: 'values' },
@@ -242,8 +231,6 @@ const DEFAULT_LIBRARY = [
 ];
 
 
-
-// --- FIREBASE CONFIG (Tu configuración) ---
 const firebaseConfig = {
   apiKey: "AIzaSyDkEd8nS_B9bh-hLJxbc30Sb84IzFpB6YA",
   authDomain: "afinidad-humana.firebaseapp.com",
@@ -254,7 +241,6 @@ const firebaseConfig = {
   measurementId: "G-NRKNBR00JC"
 };
 
-// Initialize Firebase (Compat)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -262,7 +248,7 @@ const auth = firebase.auth();
 const App = {
     data: {
         me: { id: 'me', name: 'YO', categories: { values:[], interests:[], traits:[], aspirations:[], extras:[] }, notes: [] },
-        people: [], apiKey: "", settings: { selectedForNetwork: [] },
+        people: [], apiKey: "", settings: { selectedForNetwork: [], currentSkin: 'default' },
         library: JSON.parse(JSON.stringify(DEFAULT_LIBRARY)), 
         catConfigs: [
             { key: 'values', label: '💜 Valores', weight: 3.0, color: '#d2a8ff', cssClass: 'cat-values' },
@@ -272,93 +258,61 @@ const App = {
             { key: 'extras', label: '📓 Extras', weight: 1.0, color: '#8b949e', cssClass: 'cat-extras' }
         ]
     },
-    user: null, 
-    dbUnsubscribe: null, 
-    view: 'MACRO', macroMode: 'radial', activePersonId: null, network: null, nodes: new vis.DataSet([]), edges: new vis.DataSet([]), tempNoteColor: 'yellow', saveTimeout: null,
+    filters: { type: 'all', minAffinity: 0 },
+    user: null, view: 'MACRO', macroMode: 'radial', activePersonId: null, network: null, nodes: new vis.DataSet([]), edges: new vis.DataSet([]),
 
     init() {
         this.initNetwork();
         auth.onAuthStateChanged(user => {
             this.user = user;
-            const overlay = document.getElementById('auth-overlay');
             if (user) {
                 document.getElementById('btn-login').style.display = 'none';
                 document.getElementById('user-display').style.display = 'flex';
                 document.getElementById('user-pic').src = user.photoURL || '';
-                overlay.innerHTML = `<h1 style="color:white;">Sincronizando...</h1>`;
                 this.loadFromFirebase();
             } else {
                 document.getElementById('btn-login').style.display = 'block';
                 document.getElementById('user-display').style.display = 'none';
-                overlay.style.display = 'none'; 
+                document.getElementById('auth-overlay').style.display = 'none';
                 this.loadLocalData(); 
                 this.renderMacro();
             }
         });
     },
 
-    login() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert("Error login: " + err.message));
-    },
-
-    logout() {
-        if(this.dbUnsubscribe) this.dbUnsubscribe();
-        auth.signOut();
-        location.reload();
-    },
+    login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e => alert(e.message)); },
+    logout() { auth.signOut(); location.reload(); },
 
     loadFromFirebase() {
         if (!this.user) return;
-        const docRef = db.collection('users').doc(this.user.uid);
-        this.dbUnsubscribe = docRef.onSnapshot(doc => {
-            const overlay = document.getElementById('auth-overlay');
-            if (doc.exists) {
-                const cloudData = doc.data();
-                this.data = { ...this.data, ...cloudData };
-                if (!this.data.library || this.data.library.length === 0) {
-                     this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
-                }
-                console.log("☁️ Datos sincronizados");
-                overlay.style.display = 'none';
-                if (this.view === 'MACRO') this.renderMacro();
-                else if (this.view === 'MICRO') this.enterMicro(this.activePersonId);
-            } else {
-                console.log("☁️ Nube vacía. Subiendo datos locales...");
-                this.loadLocalData(); 
-                this.saveData(true); 
-                overlay.style.display = 'none';
-                this.renderMacro();
-            }
-        }, err => {
-            console.error(err);
-            alert("Error de conexión");
+        db.collection('users').doc(this.user.uid).onSnapshot(doc => {
             document.getElementById('auth-overlay').style.display = 'none';
+            if (doc.exists) {
+                this.data = { ...this.data, ...doc.data() };
+                if (!this.data.library) this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
+                if(this.data.settings?.currentSkin) this.applySkin(this.data.settings.currentSkin);
+                this.view === 'MACRO' ? this.renderMacro() : this.enterMicro(this.activePersonId);
+            } else {
+                this.loadLocalData(); this.saveData(true); this.renderMacro();
+            }
         });
     },
 
     saveData(force = false) { 
-        localStorage.setItem('ah_v8_7', JSON.stringify(this.data)); 
+        localStorage.setItem('ah_v10_4', JSON.stringify(this.data)); 
         if (this.user) {
             if (this.saveTimeout) clearTimeout(this.saveTimeout);
-            const doSave = () => {
-                db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)))
-                .then(() => console.log("☁️ Guardado"))
-                .catch(e => console.error("Error guardando:", e));
-            };
-            if(force) doSave();
-            else this.saveTimeout = setTimeout(doSave, 1000); 
+            const doSave = () => db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data))).catch(console.error);
+            force ? doSave() : this.saveTimeout = setTimeout(doSave, 1000); 
         }
     },
 
     loadLocalData() {
-        const saved = localStorage.getItem('ah_v8_7') || localStorage.getItem('ah_v8_6');
-        if (saved) {
-            try {
-                const local = JSON.parse(saved);
-                this.data = { ...this.data, ...local };
-                if (!this.data.settings) this.data.settings = { selectedForNetwork: [] };
-            } catch(e) { console.error(e); }
+        const local = localStorage.getItem('ah_v10_4');
+        if (local) {
+            this.data = { ...this.data, ...JSON.parse(local) };
+            if (!this.data.settings) this.data.settings = { selectedForNetwork: [] };
+            if(this.data.settings.currentSkin) this.applySkin(this.data.settings.currentSkin);
         }
     },
 
@@ -366,36 +320,27 @@ const App = {
         this.network = new vis.Network(document.getElementById('mynetwork'), { nodes: this.nodes, edges: this.edges }, {
             nodes: { shape: 'box', font: { face: 'Inter', color: '#fff', size: 16 }, borderWidth: 1, color: { background: '#161b22', border: '#30363d' }, margin: 10, shadow: true },
             edges: { smooth: { type: 'continuous' } },
-            physics: { forceAtlas2Based: { gravitationalConstant: -80, springLength: 150 }, solver: 'forceAtlas2Based', stabilization: { iterations: 100 } },
-            interaction: { hover: true, tooltipDelay: 200 }
+            physics: { forceAtlas2Based: { gravitationalConstant: -80, springLength: 150 }, solver: 'forceAtlas2Based' }
         });
-        this.network.on("click", params => params.nodes.length && this.handleNodeClick(params.nodes[0]));
+        this.network.on("click", p => p.nodes.length && this.handleNodeClick(p.nodes[0]));
     },
 
     getPerson(id) { return id === 'me' ? this.data.me : this.data.people.find(p => p.id === id); },
 
-    // --- ALGORITMOS DE AFINIDAD ---
     calculateAffinity(p1, p2) {
-        let totalWeight = 0; let matchWeight = 0;
-        this.data.catConfigs.forEach(conf => {
-            const tags1 = p1.categories?.[conf.key] || [];
-            const tags2 = p2.categories?.[conf.key] || [];
-            if(tags1.length > 0 || tags2.length > 0) {
-                totalWeight += (Math.max(tags1.length, tags2.length) * conf.weight);
-                const matches = tags1.filter(tag => tags2.includes(tag)).length;
-                matchWeight += (matches * conf.weight);
+        let total = 0, match = 0;
+        this.data.catConfigs.forEach(c => {
+            const t1 = p1.categories?.[c.key] || [], t2 = p2.categories?.[c.key] || [];
+            if(t1.length || t2.length) {
+                total += (Math.max(t1.length, t2.length) * c.weight);
+                match += (t1.filter(t => t2.includes(t)).length * c.weight);
             }
         });
-        return totalWeight === 0 ? 0 : Math.min(100, (matchWeight / totalWeight) * 100);
+        return total === 0 ? 0 : Math.min(100, (match / total) * 100);
     },
 
-    getAffinityColor(affinity, alpha = 1) {
-        if(affinity >= 60) return `rgba(35, 134, 54, ${alpha})`;
-        if(affinity >= 30) return `rgba(210, 153, 34, ${alpha})`;
-        return `rgba(248, 81, 73, ${alpha})`; 
-    },
+    getAffinityColor(a, alpha=1) { return a>=60 ? `rgba(35,134,54,${alpha})` : a>=30 ? `rgba(210,153,34,${alpha})` : `rgba(248,81,73,${alpha})`; },
 
-    // --- MACRO VIEW ---
     setMacroView(mode) {
         this.macroMode = mode; this.view = 'MACRO';
         document.getElementById('btn-radial').className = `mode-btn ${mode==='radial'?'active':''}`;
@@ -403,158 +348,192 @@ const App = {
         this.renderMacro();
     },
 
+    getFilteredPeople() {
+        return this.data.people.filter(p => {
+            if(this.calculateAffinity(this.data.me, p) < this.filters.minAffinity) return false;
+            return this.filters.type === 'all' || p.relationType === this.filters.type;
+        });
+    },
+
+    applyFilters() {
+        this.filters.type = document.getElementById('filter-type').value;
+        this.filters.minAffinity = document.getElementById('filter-aff').value;
+        document.getElementById('aff-val').innerText = this.filters.minAffinity;
+        this.renderPersonList(); this.drawMacroGraph();
+    },
+
     renderMacro() {
         this.view = 'MACRO'; this.activePersonId = null;
         document.getElementById('top-mode-bar').style.display = 'flex';
         document.getElementById('canvas-notes-panel').style.display = 'none';
         
-        document.getElementById('sidebar-header-content').innerHTML = `
-            <h2>Universo</h2>
-            <div style="font-size:0.8rem; color:#8b949e; margin-top:5px;">${this.data.people.length} personas</div>
-            ${!this.user ? '<div style="font-size:0.75rem; color:var(--gold); margin-top:5px;">⚠️ Modo Local (No sincronizado)</div>' : '<div style="font-size:0.75rem; color:var(--success); margin-top:5px;">☁️ Sincronizado</div>'}
-        `;
-
-        const ui = document.getElementById('sidebar-ui');
-        ui.innerHTML = `
+        document.getElementById('sidebar-ui').innerHTML = `
             <div style="display:flex; gap:5px; margin-bottom:15px;">
                 <input id="add-name" placeholder="Nueva persona..." style="margin:0">
                 <button class="btn btn-primary" onclick="App.createPerson()" style="width:40px;">+</button>
             </div>
-            <button class="btn" onclick="App.enterMicro('me')" style="margin-bottom:20px;">👤 Editar Mi ADN</button>
-            
+            <button class="btn" onclick="App.enterMicro('me')" style="margin-bottom:10px;">👤 Editar Mi ADN</button>
+            <div class="filter-panel">
+                <div class="filter-row">
+                    <span>Filtrar por:</span>
+                    <select id="filter-type" style="width:60%; padding:2px; font-size:0.8rem; margin:0;" onchange="App.applyFilters()">
+                        <option value="all" ${this.filters.type==='all'?'selected':''}>Todos</option>
+                        <option value="friend" ${this.filters.type==='friend'?'selected':''}>Amigos</option>
+                        <option value="family" ${this.filters.type==='family'?'selected':''}>Familia</option>
+                        <option value="work" ${this.filters.type==='work'?'selected':''}>Trabajo</option>
+                        <option value="partner" ${this.filters.type==='partner'?'selected':''}>Pareja</option>
+                        <option value="acquaintance" ${this.filters.type==='acquaintance'?'selected':''}>Conocidos</option>
+                    </select>
+                </div>
+                <div class="filter-row" style="margin:0;">
+                    <span>Afinidad > <span id="aff-val">${this.filters.minAffinity}</span>%</span>
+                    <input type="range" id="filter-aff" min="0" max="100" value="${this.filters.minAffinity}" oninput="App.applyFilters()">
+                </div>
+            </div>
             <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <button class="btn" style="font-size:0.7rem" onclick="App.selectAll(true)">Ver Todos</button>
+                <button class="btn" style="font-size:0.7rem" onclick="App.selectAll(true)">Ver en Grafo</button>
                 <button class="btn" style="font-size:0.7rem" onclick="App.selectAll(false)">Ocultar</button>
             </div>
             <div id="person-list"></div>
         `;
-        this.renderPersonList();
-        this.drawMacroGraph();
+        document.getElementById('sidebar-header-content').innerHTML = `<h2>Universo</h2><div style="font-size:0.8rem; color:var(--text-muted);">${this.getFilteredPeople().length} visibles</div>`;
+        this.renderPersonList(); this.drawMacroGraph();
     },
 
     renderPersonList() {
-        const container = document.getElementById('person-list');
-        const sorted = [...this.data.people].sort((a,b) => this.calculateAffinity(this.data.me, b) - this.calculateAffinity(this.data.me, a));
-        
-        container.innerHTML = sorted.map(p => {
+        const sorted = [...this.getFilteredPeople()].sort((a,b) => this.calculateAffinity(this.data.me, b) - this.calculateAffinity(this.data.me, a));
+        document.getElementById('person-list').innerHTML = sorted.map(p => {
             const aff = Math.round(this.calculateAffinity(this.data.me, p));
-            const isSelected = this.data.settings.selectedForNetwork.includes(p.id);
-            const color = this.getAffinityColor(aff, 1);
-            return `
-            <div class="person-row">
-                <input type="checkbox" class="person-check" ${isSelected ? 'checked' : ''} onchange="App.toggleSelection('${p.id}')">
-                <div class="person-info" onclick="App.enterMicro('${p.id}')">
-                    <span>${p.name}</span> <span style="font-weight:bold; color:${color}">${aff}%</span>
-                </div>
-            </div>`;
+            return `<div class="person-row"><input type="checkbox" class="person-check" ${this.data.settings.selectedForNetwork.includes(p.id)?'checked':''} onchange="App.toggleSelection('${p.id}')"><div class="person-info" onclick="App.enterMicro('${p.id}')"><span>${p.name}</span> <span style="font-weight:bold; color:${this.getAffinityColor(aff)}">${aff}%</span></div></div>`;
         }).join('');
     },
 
     toggleSelection(id) {
         const list = this.data.settings.selectedForNetwork;
         const idx = list.indexOf(id);
-        if(idx > -1) list.splice(idx, 1); else list.push(id);
+        idx > -1 ? list.splice(idx, 1) : list.push(id);
         this.saveData(); this.drawMacroGraph();
     },
 
     selectAll(enable) {
-        this.data.settings.selectedForNetwork = enable ? this.data.people.map(p => p.id) : [];
+        const visible = this.getFilteredPeople().map(p => p.id);
+        if(enable) visible.forEach(id => { if(!this.data.settings.selectedForNetwork.includes(id)) this.data.settings.selectedForNetwork.push(id); });
+        else this.data.settings.selectedForNetwork = this.data.settings.selectedForNetwork.filter(id => !visible.includes(id));
         this.saveData(); this.renderPersonList(); this.drawMacroGraph();
     },
 
     drawMacroGraph() {
         this.nodes.clear(); this.edges.clear();
         this.nodes.add({ id: 'me', label: this.data.me.name, color: { background: '#fff', border: '#fff' }, font: { color: '#000', size: 18, bold: true }, shape: 'circle', size: 30 });
+        
+        const filteredIds = this.getFilteredPeople().map(p => p.id);
+        const visible = this.data.people.filter(p => this.data.settings.selectedForNetwork.includes(p.id) && filteredIds.includes(p.id));
 
-        const visiblePeople = this.data.people.filter(p => this.data.settings.selectedForNetwork.includes(p.id));
-
-        visiblePeople.forEach(p => {
+        visible.forEach(p => {
             this.nodes.add({ id: p.id, label: p.name, color: { background: '#161b22', border: '#58a6ff' }, shape: 'box' });
             if (this.macroMode === 'radial') {
                 const aff = Math.round(this.calculateAffinity(this.data.me, p));
-                const width = Math.max(1, aff / 15);
-                let edgeColor = this.getAffinityColor(aff, 0.6);
-                
-                // Etiqueta de porcentaje en la red social
-                this.edges.add({ 
-                    from: 'me', to: p.id, 
-                    length: Math.max(80, 450 - (aff * 4)), 
-                    width: width, 
-                    color: { color: edgeColor }, 
-                    label: aff + '%', 
-                    font: { align: 'middle', size: 10, color: '#c9d1d9', background: '#090c10', strokeWidth: 0 } 
-                });
+                this.edges.add({ from: 'me', to: p.id, length: Math.max(80, 450-(aff*4)), width: Math.max(1, aff/15), color: { color: this.getAffinityColor(aff, 0.6) }, label: aff+'%', font: {align:'middle', size:10, color:'#c9d1d9', background:'#090c10', strokeWidth:0} });
             }
         });
 
         if (this.macroMode === 'mesh') {
-            const allNodes = [this.data.me, ...visiblePeople];
-            for (let i = 0; i < allNodes.length; i++) {
-                for (let j = i + 1; j < allNodes.length; j++) {
-                    const aff = Math.round(this.calculateAffinity(allNodes[i], allNodes[j]));
-                    if (aff > 0) { 
-                        this.edges.add({ from: allNodes[i].id, to: allNodes[j].id, width: Math.max(0.5, aff / 25), color: { color: this.getAffinityColor(aff, 0.4) }, length: 300 - (aff * 2), label: aff + '%', font: { size: 9, color: '#888', background: 'transparent', strokeWidth: 0 } });
-                    }
+            const all = [this.data.me, ...visible];
+            for (let i=0; i<all.length; i++) {
+                for (let j=i+1; j<all.length; j++) {
+                    const aff = Math.round(this.calculateAffinity(all[i], all[j]));
+                    if (aff >= this.filters.minAffinity) this.edges.add({ from: all[i].id, to: all[j].id, width: Math.max(0.5, aff/25), color: { color: this.getAffinityColor(aff, 0.4) }, length: 300-(aff*2), label: aff+'%', font: {align:'middle', size:10, color:'#c9d1d9', background:'#090c10', strokeWidth:0} });
                 }
             }
         }
         this.network.fit();
     },
 
-    // --- MICRO VIEW ---
+    updateAffinityHistory(p) {
+        const currentAff = Math.round(this.calculateAffinity(this.data.me, p));
+        const today = new Date().toLocaleDateString();
+        if (!p.affinityHistory) p.affinityHistory = [];
+        const last = p.affinityHistory[p.affinityHistory.length - 1];
+        
+        if (!last || last.date !== today || Math.abs(last.score - currentAff) > 5) {
+            p.affinityHistory.push({ date: today, score: currentAff });
+            if(p.affinityHistory.length > 20) p.affinityHistory.shift();
+            this.saveData();
+        }
+    },
+
+    generateChartSVG(history) {
+        if(!history || history.length < 2) return `<div style="text-align:center; padding-top:15px; font-size:0.7rem; color:#666;">Sin historial suficiente</div>`;
+        const points = history.map((h, i) => {
+            const x = (i / (history.length - 1)) * 100;
+            const y = 100 - h.score; // Invertir Y (0 es arriba en SVG)
+            return `${x},${y/2}`; // Escalar altura a 50px
+        }).join(' ');
+        const trend = history[history.length-1].score >= history[0].score ? 'Ascendente 📈' : 'Descendente 📉';
+        return `<svg viewBox="0 0 100 50" preserveAspectRatio="none" style="width:100%; height:100%"><polyline points="${points}" class="evolution-line" /></svg><div class="chart-label" style="bottom:2px; right:2px">${trend}</div>`;
+    },
+
     enterMicro(id) {
         this.view = 'MICRO'; this.activePersonId = id;
         document.getElementById('top-mode-bar').style.display = 'none';
         document.getElementById('canvas-notes-panel').style.display = 'flex';
         const p = this.getPerson(id);
-        if(!p) { this.renderMacro(); return; } 
-        
         const isMe = (id === 'me');
-        const ui = document.getElementById('sidebar-ui');
-        ui.className = 'anim-fade';
+        if(!isMe) this.updateAffinityHistory(p);
 
-        let headerHtml = isMe ? `<input type="text" value="${p.name}" onchange="App.updateName(this.value)" style="font-size:1.4rem; font-weight:bold; margin:0; background:transparent; border:1px dashed transparent; color:white;">` 
-            : `<div style="display:flex; justify-content:space-between; align-items:center;"><h2 style="font-size:1.5rem">${p.name}</h2><span style="font-size:1.2rem; font-weight:bold; color:${this.getAffinityColor(Math.round(this.calculateAffinity(this.data.me, p)), 1)}">${Math.round(this.calculateAffinity(this.data.me, p))}%</span></div>`;
+        const headerHtml = isMe ? `<input type="text" value="${p.name}" onchange="App.updateName(this.value)" style="font-size:1.4rem; font-weight:bold; margin:0; background:transparent; border:1px dashed transparent; color:white;">` : `<div style="display:flex; justify-content:space-between; align-items:center;"><h2 style="font-size:1.5rem">${p.name}</h2><span style="font-size:1.2rem; font-weight:bold; color:${this.getAffinityColor(Math.round(this.calculateAffinity(this.data.me, p)))}">${Math.round(this.calculateAffinity(this.data.me, p))}%</span></div>`;
+        
+        document.getElementById('sidebar-header-content').innerHTML = `<button class="btn" style="width:auto; margin-bottom:10px;" onclick="App.renderMacro()">← Volver</button>${headerHtml}${!isMe ? `<div class="evolution-chart">${this.generateChartSVG(p.affinityHistory)}</div>` : ''}`;
 
-        document.getElementById('sidebar-header-content').innerHTML = `<button class="btn" style="width:auto; margin-bottom:10px;" onclick="App.renderMacro()">← Volver</button>${headerHtml}`;
+        const aiSection = `
+            <div class="ai-panel">
+                <div style="font-weight:bold; font-size:0.8rem; color:var(--ai-color); margin-bottom:10px">✨ IA RELACIONAL</div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                    <button class="btn btn-ai" style="width:auto" onclick="App.aiSuggestTags()">🏷️ Tags</button>
+                    <button class="btn btn-ai" style="width:auto" onclick="App.aiProfile()">📜 Perfil</button>
+                    ${!isMe ? `<button class="btn btn-ai" style="width:auto" onclick="App.aiAdvice()">💡 Consejo</button><button class="btn btn-ai" style="width:auto" onclick="App.aiReaction()">🔮 Reacción</button>` : ''}
+                </div>
+                <div id="ai-output" class="ai-response"></div>
+            </div>`;
 
-        const aiSection = !isMe ? `<div class="ai-panel"><div style="display:flex; align-items:center; gap:5px; margin-bottom:10px; color:var(--ai-color); font-weight:bold; font-size:0.8rem;">✨ IA ASSISTANT</div><div style="display:flex; gap:5px; flex-wrap:wrap;"><button class="btn btn-ai" style="width:auto" onclick="App.aiSuggestTags()">🏷️ Sugerir</button><button class="btn btn-ai" style="width:auto" onclick="App.aiProfile()">📜 Perfil</button><button class="btn btn-ai" style="width:auto" onclick="App.aiInterview()">🕵️ Pregunta</button></div><div id="ai-output" class="ai-response"></div></div>` : '';
+        let relationHtml = '';
+        if(!isMe) relationHtml = `<div class="relation-control"><select style="margin:0; width:auto; font-size:0.8rem; padding:5px;" onchange="App.updateRelationType(this.value)"><option value="acquaintance" ${!p.relationType?'selected':''}>Sin definir</option><option value="friend" ${p.relationType==='friend'?'selected':''}>Amigo</option><option value="family" ${p.relationType==='family'?'selected':''}>Familia</option><option value="work" ${p.relationType==='work'?'selected':''}>Trabajo</option><option value="partner" ${p.relationType==='partner'?'selected':''}>Pareja</option></select><div style="flex-grow:1; text-align:right;"><span style="font-size:0.7rem; color:var(--text-muted)">Sintonía:</span><input type="number" min="1" max="10" value="${p.subjectiveScore||5}" style="width:50px; margin:0; padding:5px;" onchange="App.updateScore(this.value)"></div></div>`;
 
-        const accordionsHtml = this.data.catConfigs.map(conf => `
-            <details ${isMe ? 'open' : ''}>
-                <summary><span>${conf.label} <button class="cat-delete-btn" onclick="event.preventDefault(); App.deleteCategory('${conf.key}')">🗑️</button></span></summary>
+        const accordions = this.data.catConfigs.map(c => `
+            <details ${isMe?'open':''}>
+                <summary><span>${c.label} <button class="cat-delete-btn" onclick="event.preventDefault(); App.deleteCategory('${c.key}')">🗑️</button></span></summary>
                 <div class="details-content">
-                    <div id="tag-container-${conf.key}" class="tag-container"></div>
-                    <div style="margin-top:10px; display:flex; gap:5px;"><input id="new-tag-${conf.key}" placeholder="Añadir..." style="font-size:0.8rem; padding:6px; margin:0;" onkeypress="if(event.key==='Enter') App.addTag('${conf.key}')"><button class="btn btn-primary" style="width:auto; padding:0 10px;" onclick="App.addTag('${conf.key}')">+</button></div>
+                    <div id="tag-container-${c.key}" class="tag-container"></div>
+                    <div style="margin-top:10px; display:flex; gap:5px;"><input id="new-tag-${c.key}" placeholder="Añadir..." style="font-size:0.8rem; padding:6px; margin:0;" onkeypress="if(event.key==='Enter') App.addTag('${c.key}')"><button class="btn btn-primary" style="width:auto; padding:0 10px;" onclick="App.addTag('${c.key}')">+</button></div>
                 </div>
             </details>`).join('');
 
-        const mirrorHtml = !isMe ? `<details open><summary>🔍 Espejo</summary><div class="details-content" id="mirror-content"></div></details>` : '';
+        const mirror = !isMe ? `<details open><summary>🔍 Espejo</summary><div class="details-content" id="mirror-content"></div></details>` : '';
 
-        ui.innerHTML = `${aiSection}${mirrorHtml}${accordionsHtml}<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;"><div style="display:flex; gap:5px;"><input id="new-cat-name" placeholder="Nueva Categoría..." style="margin:0"><button class="btn btn-primary" style="width:40px;" onclick="App.createCategory()">+</button></div></div><h3>Editor de Notas</h3><div class="editor-container"><div class="editor-toolbar"><button class="editor-btn" onclick="document.execCommand('bold',false,null)"><b>B</b></button><button class="editor-btn" onclick="document.execCommand('italic',false,null)"><i>I</i></button><button class="editor-btn" onclick="document.execCommand('insertUnorderedList',false,null)">• List</button></div><div id="rich-editor" contenteditable="true" placeholder="Escribe aquí..."></div></div><div style="display:flex; gap:5px; margin-bottom:20px;"><button class="btn" style="width:30px; background:#fff9c4;" onclick="App.saveNote('yellow')"></button><button class="btn" style="width:30px; background:#ffcdd2;" onclick="App.saveNote('red')"></button><button class="btn" style="width:30px; background:#c8e6c9;" onclick="App.saveNote('green')"></button><button class="btn" style="width:30px; background:#bbdefb;" onclick="App.saveNote('blue')"></button><button class="btn btn-primary" style="flex-grow:1" onclick="App.saveNote('yellow')">Fijar Nota</button></div>${!isMe ? `<button class="btn btn-danger" onclick="App.deletePerson()">Eliminar Persona</button>` : ''}`;
+        document.getElementById('sidebar-ui').innerHTML = `${aiSection}${relationHtml}${mirror}${accordions}<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;"><div style="display:flex; gap:5px;"><input id="new-cat-name" placeholder="Nueva Categoría..." style="margin:0"><button class="btn btn-primary" style="width:40px;" onclick="App.createCategory()">+</button></div></div><h3>Editor de Notas</h3><div class="editor-container"><div class="editor-toolbar"><button class="editor-btn" onclick="document.execCommand('bold',false,null)"><b>B</b></button><button class="editor-btn" onclick="document.execCommand('italic',false,null)"><i>I</i></button><button class="editor-btn" onclick="document.execCommand('insertUnorderedList',false,null)">• List</button><button class="editor-btn" onclick="document.execCommand('insertOrderedList',false,null)">1.2.3</button></div><div id="rich-editor" contenteditable="true" placeholder="Escribe aquí..."></div></div><div style="display:flex; gap:5px; margin-bottom:20px;"><button class="btn" style="width:30px; background:#fff9c4;" onclick="App.saveNote('yellow')"></button><button class="btn" style="width:30px; background:#ffcdd2;" onclick="App.saveNote('red')"></button><button class="btn" style="width:30px; background:#c8e6c9;" onclick="App.saveNote('green')"></button><button class="btn" style="width:30px; background:#bbdefb;" onclick="App.saveNote('blue')"></button><button class="btn btn-primary" style="flex-grow:1" onclick="App.saveNote('yellow')">Fijar Nota</button></div>${!isMe ? `<button class="btn btn-danger" onclick="App.deletePerson()">Eliminar Persona</button>` : ''}`;
 
-        this.data.catConfigs.forEach(conf => this.renderTags(conf.key, conf.cssClass));
-        this.renderNotes();
-        if(!isMe) this.renderMirror();
-        this.drawMicroGraph();
+        this.data.catConfigs.forEach(c => this.renderTags(c.key, c.cssClass));
+        this.renderNotes(); if(!isMe) this.renderMirror(); this.drawMicroGraph();
     },
 
+    updateRelationType(val) { this.getPerson(this.activePersonId).relationType = val; this.saveData(); },
+    updateScore(val) { this.getPerson(this.activePersonId).subjectiveScore = parseInt(val); this.saveData(); },
+
+    // FIX CATEGORIAS VACIAS
     renderTags(catKey, cssClass) {
         const container = document.getElementById(`tag-container-${catKey}`);
         if(!container) return;
         const p = this.getPerson(this.activePersonId);
         const myTags = p.categories[catKey] || [];
-        const libraryOptions = this.data.library.filter(l => l.category === catKey);
-        const uniqueLabels = [...new Set([...myTags, ...libraryOptions.map(l=>l.label)])].sort();
+        const libOptions = this.data.library.filter(l => l.category === catKey).map(l => l.label);
+        const allTags = [...new Set([...myTags, ...libOptions])].sort();
 
-        container.innerHTML = uniqueLabels.map(label => {
-            const active = myTags.includes(label);
-            const isGlobal = this.data.library.some(l => l.label === label && l.category === catKey);
+        container.innerHTML = allTags.map(label => {
+            const isActive = myTags.includes(label);
             let classes = `tag-item ${cssClass}`;
-            if (active) classes += ' active';
-            if (!isGlobal) classes += ' local';
-            let promoteHtml = (!isGlobal && active) ? `<span class="promote-btn" onclick="event.stopPropagation(); App.promoteTag('${catKey}', '${label}')">↑</span>` : '';
-            return `<div class="${classes}" onclick="App.toggleTag('${catKey}', '${label}')">${label} ${promoteHtml} <div class="tag-del-btn" onclick="event.stopPropagation(); App.deleteConcept('${catKey}', '${label}')">🗑️</div></div>`;
+            if(isActive) classes += ' active'; else classes += ' local';
+            const btnHtml = isActive ? `<div class="tag-del-btn" onclick="event.stopPropagation(); App.toggleTag('${catKey}', '${label}')">✕</div>` : '';
+            return `<div class="${classes}" onclick="App.toggleTag('${catKey}', '${label}')" style="${!isActive ? 'opacity:0.6; background:transparent;' : ''}">${label} ${btnHtml}</div>`;
         }).join('');
     },
 
@@ -562,18 +541,17 @@ const App = {
         const container = document.getElementById('mirror-content');
         const me = this.data.me; const p = this.getPerson(this.activePersonId);
         let html = '';
-        this.data.catConfigs.forEach(conf => {
-            const myTags = me.categories[conf.key] || [];
-            const theirTags = p.categories[conf.key] || [];
-            const shared = myTags.filter(t => theirTags.includes(t));
-            const diffThem = theirTags.filter(t => !myTags.includes(t));
-            if(shared.length > 0 || diffThem.length > 0) {
-                html += `<div style="font-size:0.7rem; text-transform:uppercase; color:#666; margin-top:8px;">${conf.label}</div>`;
+        this.data.catConfigs.forEach(c => {
+            const t1 = me.categories[c.key] || [], t2 = p.categories[c.key] || [];
+            const shared = t1.filter(x => t2.includes(x));
+            const diffThem = t2.filter(x => !t1.includes(x));
+            if(shared.length || diffThem.length) {
+                html += `<div style="font-size:0.7rem; text-transform:uppercase; color:#666; margin-top:8px;">${c.label}</div>`;
                 shared.forEach(t => html += `<div class="comp-row"><div class="comp-col shared"><span class="circle-dot circle-green"></span>${t}</div><div class="comp-col"></div></div>`);
-                diffThem.forEach(t => html += `<div class="comp-row"><div class="comp-col"></div><div class="comp-col diff"><span class="circle-dot circle-red"></span>${t}</div></div>`);
+                diffThem.forEach(t => html += `<div class="comp-row"><div class="comp-col diff-them"><span class="circle-dot circle-red"></span>${t}</div><div class="comp-col" style="text-align:right; font-size:0.7rem; color:#666">Dif</div></div>`);
             }
         });
-        container.innerHTML = html || '<div style="font-style:italic; color:#555;">No hay datos relevantes.</div>';
+        container.innerHTML = html || '<div style="font-style:italic; color:#555;">Sin datos suficientes.</div>';
     },
 
     saveNote(color) {
@@ -586,228 +564,138 @@ const App = {
     },
 
     renderNotes() {
-        const panel = document.getElementById('canvas-notes-panel');
         const p = this.getPerson(this.activePersonId);
-        // ORDEN INVERSO: Nuevas arriba
         const notes = (p.notes || []).sort((a,b) => b.id - a.id);
-        if (notes.length === 0) { panel.innerHTML = ''; return; }
-        // NOTAS EDITABLES
-        panel.innerHTML = notes.map(n => `
-            <div class="note-card ${n.color}">
-                <span class="note-date">${n.date}</span>
-                <div class="note-content" contenteditable="true" onblur="App.updateNoteContent(${n.id}, this.innerHTML)">${n.html || n.text}</div>
-                <div class="note-actions">
-                    <button class="mini-btn" title="Eliminar nota" onclick="App.deleteNote(${n.id})">✕</button>
-                </div>
-            </div>`).join('');
+        document.getElementById('canvas-notes-panel').innerHTML = notes.map(n => `<div class="note-card ${n.color}"><span class="note-date">${n.date}</span><div class="note-content" contenteditable="true" onblur="App.updateNoteContent(${n.id}, this.innerHTML)">${n.html || n.text}</div><div class="note-actions"><button class="mini-btn" onclick="App.deleteNote(${n.id})">✕</button></div></div>`).join('');
     },
 
-    updateNoteContent(id, newHtml) {
-        const p = this.getPerson(this.activePersonId);
-        const note = p.notes.find(n => n.id === id);
-        if(note) { note.html = newHtml; this.saveData(); }
-    },
-
-    deleteNote(id) {
-        if(!confirm('¿Borrar nota?')) return;
-        const p = this.getPerson(this.activePersonId);
-        p.notes = p.notes.filter(x => x.id !== id);
-        this.saveData(); this.renderNotes();
-    },
+    updateNoteContent(id, newHtml) { const n = this.getPerson(this.activePersonId).notes.find(x => x.id === id); if(n) { n.html = newHtml; this.saveData(); } },
+    deleteNote(id) { if(confirm('¿Borrar?')) { const p = this.getPerson(this.activePersonId); p.notes = p.notes.filter(x => x.id !== id); this.saveData(); this.renderNotes(); } },
 
     toggleTag(catKey, label) {
         const p = this.getPerson(this.activePersonId);
         if (!p.categories[catKey]) p.categories[catKey] = [];
-        
         const idx = p.categories[catKey].indexOf(label);
         if (idx >= 0) p.categories[catKey].splice(idx, 1); else p.categories[catKey].push(label);
         
-        if (this.activePersonId === 'me' && !this.data.library.find(l => l.label === label && l.category === catKey)) {
-            this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
-        }
-        this.saveData();
-        this.renderTags(catKey, this.data.catConfigs.find(c=>c.key===catKey).cssClass);
-        if(this.activePersonId !== 'me') this.renderMirror();
-        this.drawMicroGraph();
-    },
-
-    addTag(catKey) {
-        const val = document.getElementById(`new-tag-${catKey}`).value.trim();
-        if(val) { this.toggleTag(catKey, val); document.getElementById(`new-tag-${catKey}`).value=''; }
-    },
-
-    promoteTag(catKey, label) {
         if (!this.data.library.find(l => l.label === label && l.category === catKey)) {
             this.data.library.push({ id: 'l_'+Date.now(), label, category: catKey });
-            this.saveData(); this.enterMicro(this.activePersonId);
         }
+        this.saveData(); this.renderTags(catKey, this.data.catConfigs.find(c=>c.key===catKey).cssClass);
+        if(this.activePersonId !== 'me') this.renderMirror(); this.drawMicroGraph();
     },
 
-    deleteConcept(catKey, label) {
-        if(!confirm(`¿Eliminar "${label}" permanentemente?`)) return;
-        this.data.library = this.data.library.filter(l => !(l.label === label && l.category === catKey));
-        const cleanPerson = (p) => { if(p.categories[catKey]) p.categories[catKey] = p.categories[catKey].filter(t => t !== label); };
-        cleanPerson(this.data.me); this.data.people.forEach(cleanPerson);
-        this.saveData(); this.enterMicro(this.activePersonId);
-    },
-
-    createCategory() {
-        const name = document.getElementById('new-cat-name').value.trim();
-        if(!name) return;
-        const key = 'cat_' + Date.now();
-        this.data.catConfigs.push({ key: key, label: '📂 ' + name, weight: 1.0, color: '#8b949e', cssClass: 'cat-extras' });
-        const initCat = (p) => { if(!p.categories[key]) p.categories[key] = []; };
-        initCat(this.data.me); this.data.people.forEach(initCat);
-        this.saveData(); this.enterMicro(this.activePersonId);
-    },
-
-    deleteCategory(key) {
-        if(!confirm('¿Borrar categoría?')) return;
-        this.data.catConfigs = this.data.catConfigs.filter(c => c.key !== key);
-        this.saveData(); this.enterMicro(this.activePersonId);
-    },
-
-    createPerson() {
-        const name = document.getElementById('add-name').value.trim();
-        if(!name) return alert('Escribe un nombre');
-        const newPerson = { id: 'p_' + Date.now(), name: name, categories: {}, notes: [] };
-        this.data.catConfigs.forEach(c => newPerson.categories[c.key] = []);
-        this.data.people.push(newPerson);
-        this.data.settings.selectedForNetwork.push(newPerson.id);
-        document.getElementById('add-name').value = '';
-        this.saveData();
-        this.renderMacro();
-    },
-
-    deletePerson() {
-        if(!confirm('¿Eliminar persona?')) return;
-        this.data.people = this.data.people.filter(p => p.id !== this.activePersonId);
-        this.saveData(); this.renderMacro();
-    },
-
-    updateName(val) { if(val) { this.getPerson(this.activePersonId).name = val; this.saveData(); } },
-    toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); },
-    handleNodeClick(id) { if (id === 'me' || this.data.people.find(p => p.id === id)) this.enterMicro(id); },
+    addTag(catKey) { const v = document.getElementById(`new-tag-${catKey}`).value.trim(); if(v) { this.toggleTag(catKey, v); document.getElementById(`new-tag-${catKey}`).value=''; } },
+    deleteCategory(k) { if(confirm('¿Borrar categoría?')) { this.data.catConfigs = this.data.catConfigs.filter(c => c.key !== k); this.saveData(); this.enterMicro(this.activePersonId); } },
+    createCategory() { const n = document.getElementById('new-cat-name').value.trim(); if(n) { const k = 'cat_'+Date.now(); this.data.catConfigs.push({key:k, label:'📂 '+n, weight:1, color:'#8b949e', cssClass:'cat-extras'}); this.saveData(); this.enterMicro(this.activePersonId); } },
     
-    // --- MICRO GRAPH DRAWING ---
+    createPerson() { 
+        const n = document.getElementById('add-name').value.trim(); if(!n) return; 
+        const newP = { id: 'p_'+Date.now(), name: n, categories: {}, notes: [], relationType: 'acquaintance', subjectiveScore: 5 }; 
+        this.data.catConfigs.forEach(c => newP.categories[c.key]=[]); 
+        this.data.people.push(newP); this.data.settings.selectedForNetwork.push(newP.id); 
+        this.saveData(); document.getElementById('add-name').value=''; this.renderMacro(); 
+    },
+    
+    deletePerson() { if(confirm('¿Eliminar?')) { this.data.people = this.data.people.filter(p => p.id !== this.activePersonId); this.saveData(); this.renderMacro(); } },
+    updateName(v) { if(v) { this.getPerson(this.activePersonId).name = v; this.saveData(); } },
+    toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); },
+    handleNodeClick(id) { if(id === 'me' || this.data.people.find(p => p.id === id)) this.enterMicro(id); },
+    
+    // --- FUNCIÓN RESTAURADA: DIBUJAR GRAFO MICRO ---
     drawMicroGraph() {
         const p = this.getPerson(this.activePersonId);
-        this.nodes.clear(); this.edges.clear();
-        this.nodes.add({ id: 'center', label: p.name, shape: 'box', color: {background:'#fff', border:'#fff'}, font:{size:20, color:'#000'}, fixed:true });
+        this.nodes.clear(); 
+        this.edges.clear();
+        
+        // Nodo Central (Persona)
+        this.nodes.add({ 
+            id: 'center', 
+            label: p.name, 
+            shape: 'box', 
+            color: { background: '#fff', border: '#fff' }, 
+            font: { size: 20, color: '#000' }, 
+            fixed: true 
+        });
+
         let i = 0;
         this.data.catConfigs.forEach(conf => {
-            if(p.categories[conf.key]) {
-                p.categories[conf.key].forEach(label => {
-                    i++;
-                    this.nodes.add({ id: 'n_'+i, label: label, shape: 'ellipse', color: { background: '#0d1117', border: conf.color }, font: { color: conf.color } });
-                    this.edges.add({ from: 'center', to: 'n_'+i, color: { color: conf.color, opacity: 0.6 } });
+            const tags = p.categories[conf.key] || [];
+            tags.forEach(label => {
+                i++;
+                // Nodo Etiqueta
+                this.nodes.add({ 
+                    id: 'n_' + i, 
+                    label: label, 
+                    shape: 'ellipse', 
+                    color: { background: '#0d1117', border: conf.color }, 
+                    font: { color: conf.color } 
                 });
-            }
+                // Conexión
+                this.edges.add({ 
+                    from: 'center', 
+                    to: 'n_' + i, 
+                    color: { color: conf.color, opacity: 0.6 } 
+                });
+            });
         });
-        this.network.setOptions({ physics: { stabilization: false, barnesHut: { gravitationalConstant: -2000, springLength: 200 } } });
+
+        this.network.setOptions({ 
+            physics: { 
+                stabilization: false, 
+                barnesHut: { gravitationalConstant: -2000, springLength: 200 } 
+            } 
+        });
         this.network.fit();
     },
-
-    async resetEverything() {
-        if (!confirm("¿ESTÁS SEGURO? Se borrarán todos los datos.")) return;
-        this.data.me = { id: 'me', name: 'YO', categories: {}, notes: [] };
-        this.data.people = [];
-        this.data.settings.selectedForNetwork = [];
-        this.data.library = JSON.parse(JSON.stringify(DEFAULT_LIBRARY));
-        this.data.catConfigs.forEach(c => { this.data.me.categories[c.key] = []; });
-        localStorage.clear();
-        if (this.user) {
-            await db.collection('users').doc(this.user.uid).set(JSON.parse(JSON.stringify(this.data)));
-        }
-        document.getElementById('settings-modal').style.display = 'none';
-        this.renderMacro();
-    },
-
-    // --- INTEGRACIÓN AVANZADA GEMINI 2.5 (FIX) ---
-    getCleanContext(p) {
-        const notesText = (p.notes || [])
-            .sort((a,b) => a.id - b.id)
-            .map(n => `[${n.date}]: ${(n.html || n.text || '').replace(/<[^>]*>?/gm, '')}`)
-            .join("\n");
-        return `SUJETO: ${p.name}\nETIQUETAS: ${JSON.stringify(p.categories)}\nNOTAS:\n${notesText || "Sin notas."}`;
-    },
-
-    async callAI(systemRole, userContext) {
-        if(!this.data.apiKey) return alert("Falta API Key. Ve a ⚙️ Configuración.");
-        const out = document.getElementById('ai-output');
-        out.style.display = 'block'; out.innerHTML = `<span class="loading-dots">Pensando</span>`; 
-        
+    
+    // --- AI FUNCTIONS ---
+    async callAI(sys, user) {
+        if(!this.data.apiKey) return alert("Configura API Key");
+        document.getElementById('ai-output').style.display='block';
+        document.getElementById('ai-output').innerHTML='<span class="loading-dots">Analizando...</span>';
         try {
-            // FIX: Usamos el modelo Gemini 2.5 Flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.data.apiKey}`;
-            const payload = {
-                system_instruction: { parts: [{ text: systemRole }] },
-                contents: [{ role: "user", parts: [{ text: userContext }] }],
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                ],
-                generationConfig: { temperature: 0.8, maxOutputTokens: 500 }
-            };
-
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            const res = await response.json();
-
-            if (res.error) {
-                console.error("Gemini Error:", res.error);
-                let msg = res.error.message || "Error desconocido";
-                if (res.error.code === 400) msg = "API Key inválida o modelo no encontrado.";
-                out.innerHTML = `<span style="color:#ff6b6b">${msg}</span>`;
-                return null;
-            }
-            if (res.candidates && res.candidates[0].content) return res.candidates[0].content.parts[0].text;
-            return "Sin respuesta.";
-
-        } catch(e) { 
-            console.error(e);
-            out.innerText = "Error de red.";
-            return null;
-        }
+            const r = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${this.data.apiKey}`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ contents: [{ parts: [{ text: sys+"\n"+user }] }] })
+            });
+            const j = await r.json();
+            if(j.error) return this.callFallback(sys, user);
+            this.renderAIOutput(j.candidates[0].content.parts[0].text);
+        } catch(e) { this.callFallback(sys, user); }
     },
-
-    async aiSuggestTags() {
-        const p = this.getPerson(this.activePersonId);
-        const sys = `Eres un perfilador psicológico. Lee las notas y etiquetas del sujeto. DEDUCE 5 rasgos, valores o intereses NUEVOS que no tenga ya. Responde SOLO con la lista separada por comas.`;
-        const res = await this.callAI(sys, this.getCleanContext(p));
-        if(res) document.getElementById('ai-output').innerText = "Sugerencias: " + res;
+    async callFallback(sys, user) {
+        try {
+            const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.data.apiKey}`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ contents: [{ parts: [{ text: sys+"\n"+user }] }] })
+            });
+            const j = await r.json();
+            this.renderAIOutput(j.candidates?j.candidates[0].content.parts[0].text : "Error modelo.");
+        } catch(e) { document.getElementById('ai-output').innerText="Error red."; }
     },
+    
+    getCleanContext(p) { return `PERFIL: ${p.name}\nETIQUETAS: ${JSON.stringify(p.categories)}\nTIPO RELACIÓN: ${p.relationType || 'No definido'}`; },
+    
+    aiSuggestTags() { this.callAI("Deduce 5 etiquetas nuevas probables basadas en las existentes. Solo lista.", this.getCleanContext(this.getPerson(this.activePersonId))); },
+    aiProfile() { this.callAI("Crea un perfil arquetípico breve (50 palabras).", this.getCleanContext(this.getPerson(this.activePersonId))); },
+    aiAdvice() { this.callAI("Dame un consejo táctico breve para mejorar la relación basado en sus intereses.", this.getCleanContext(this.getPerson(this.activePersonId))); },
+    aiReaction() { const s = prompt("Situación:"); if(s) this.callAI(`¿Cómo reaccionaría a: "${s}"?`, this.getCleanContext(this.getPerson(this.activePersonId))); },
 
-    async aiProfile() {
-        const p = this.getPerson(this.activePersonId);
-        const sys = `Eres un psicólogo experto. Crea un perfil breve (max 50 palabras) sobre la motivación oculta y posibles conflictos de esta persona. Sé directo.`;
-        const res = await this.callAI(sys, this.getCleanContext(p));
-        if(res) document.getElementById('ai-output').innerHTML = res.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent)">$1</strong>').replace(/\n/g, '<br>');
+    renderAIOutput(txt) {
+        const html = txt.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        document.getElementById('ai-output').innerHTML = `<div>${html}</div><button class="btn btn-primary" onclick="App.saveAiResponse(this.parentElement.innerText)" style="font-size:0.7rem; margin-top:10px; width:auto;">💾 Guardar nota</button>`;
     },
-
-    async aiInterview() {
-        const p = this.getPerson(this.activePersonId);
-        const sys = `Eres un entrevistador profundo. Genera UNA pregunta diseñada para revelar los valores reales de esta persona.`;
-        const res = await this.callAI(sys, this.getCleanContext(p));
-        if(res) {
-            const cleanQ = res.replace(/"/g, '');
-            document.getElementById('ai-output').innerHTML = `<div style="font-style:italic; margin-bottom:10px">"${cleanQ}"</div><button class="btn btn-primary" onclick="App.saveAiResponse('${cleanQ.replace(/'/g, "\\'")}')" style="font-size:0.75rem">Guardar</button>`;
-        }
-    },
-
-    saveAiResponse(q) {
-        const p = this.getPerson(this.activePersonId);
-        p.notes.push({ id: Date.now(), html: `<b>🤖 Pregunta IA:</b> ${q}<br><br><b>R:</b> ...`, color: 'yellow', date: new Date().toLocaleDateString() });
+    saveAiResponse(txt) {
+        const clean = txt.replace("💾 Guardar nota", "");
+        this.getPerson(this.activePersonId).notes.push({id:Date.now(), html:`<b>🤖 IA:</b><br>${clean}`, color:'yellow', date:new Date().toLocaleDateString()});
         this.saveData(); this.renderNotes();
-        document.getElementById('ai-output').innerHTML = `<span style="color:var(--success)">Guardado.</span>`;
     },
 
-    openSettings() { document.getElementById('settings-modal').style.display = 'flex'; },
-    saveSettings() {
-        this.data.apiKey = document.getElementById('api-key-input').value;
-        this.saveData(); document.getElementById('settings-modal').style.display = 'none';
-    }
+    openSettings() { document.getElementById('api-key-input').value = this.data.apiKey||''; document.getElementById('skin-select').value = this.data.settings.currentSkin||'default'; document.getElementById('settings-modal').style.display='flex'; },
+    saveSettings() { this.data.apiKey = document.getElementById('api-key-input').value; this.saveData(); document.getElementById('settings-modal').style.display='none'; },
+    applySkin(s) { document.body.className = s; this.data.settings.currentSkin = s; this.saveData(); },
+    resetEverything() { if(confirm('¿Borrar todo?')) { localStorage.clear(); db.collection('users').doc(this.user.uid).delete(); location.reload(); } }
 };
 
 window.addEventListener('DOMContentLoaded', () => App.init());
